@@ -61,6 +61,7 @@ interface AppStoreValue {
   setCloudSync: (enabled: boolean) => void;
   setReducedMotion: (enabled: boolean) => void;
   enablePremiumPreview: () => void;
+  setEntitlement: (entitlement: import('@shared/types').SubscriptionEntitlement) => void;
   resetAllData: () => void;
   exportData: () => string;
 }
@@ -176,6 +177,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       ...current,
       entitlement: { status: 'trialing', plan: 'annual', source: 'preview', trialEndsAt: new Date(Date.now() + 7 * 86_400_000).toISOString(), updatedAt: now() },
     })),
+    setEntitlement: (entitlement) => update((current) => ({ ...current, entitlement })),
     resetAllData: () => {
       localStorage.removeItem(STORAGE_KEY);
       setData({ ...DEFAULT_DATA, profile: { ...DEFAULT_DATA.profile, createdAt: now(), updatedAt: now() } });

@@ -12,7 +12,7 @@ import { classifySafety, SAFETY_RESPONSES } from '../shared/safety';
 import type { SyncMutation } from '../shared/types';
 import { config } from './config';
 import { db, checkDatabase } from './db/client';
-import { subscriptionEntitlements, syncRecords, webhookEvents } from './db/schema';
+import { parentAccounts, subscriptionEntitlements, syncRecords, webhookEvents } from './db/schema';
 import { createSessionToken, requireSession } from './security/auth';
 import { encryptField } from './security/crypto';
 
@@ -52,12 +52,37 @@ app.post('/v1/webhooks/stripe', express.raw({ type: 'application/json' }), async
   catch { return response.status(400).json({ error: 'Invalid signature' }); }
 
   if (!db) return response.status(503).json({ error: 'Database is not configured' });
-  const inserted = await db.insert(webhookEvents).values({ id: event.id, provider: 'stripe' }).onConflictDoNothing().returning({ id: webhookEvents.id });
-  if (!inserted.length) return response.json({ received: true, duplicate: true });
+
+  // Idempotency: check if this event was already successfully processed.
+  // We intentionally do NOT treat an unprocessed (received but not yet completed)
+  // record as a duplicate — that allows Stripe retries to finish interrupted events.
+  const existing = await db.select({ processedAt: webhookEvents.processedAt })
+    .from(webhookEvents)
+    .where(sql`${webhookEvents.id} = ${event.id}`)
+    .limit(1);
+  if (existing.length && existing[0].processedAt !== null) {
+    return response.json({ received: true, duplicate: true });
+  }
+  // Record receipt (no-op if already recorded from a previous attempt)
+  await db.insert(webhookEvents).values({ id: event.id, provider: 'stripe' }).onConflictDoNothing();
 
   const object = event.data.object as unknown as Record<string, any>;
   const parentAccountId = object.metadata?.parentAccountId ?? object.client_reference_id;
-  if (parentAccountId && ['checkout.session.completed', 'customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'].includes(event.type)) {
+
+  // Always ensure the parent account row exists when we have an ID — this satisfies
+  // the FK constraint on subscription_entitlements for any downstream event.
+  if (parentAccountId) {
+    await db.insert(parentAccounts).values({
+      id: parentAccountId,
+      email: `webhook+${parentAccountId}@glitter.local`,
+    }).onConflictDoNothing();
+  }
+
+  // Only subscription lifecycle events carry authoritative status.
+  // checkout.session.completed has object.status = 'complete', which is not a
+  // subscription state and would incorrectly overwrite a valid trialing/active
+  // entitlement if events arrive out of order.
+  if (parentAccountId && ['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'].includes(event.type)) {
     const rawStatus = object.status as string | undefined;
     const status = event.type === 'customer.subscription.deleted'
       ? 'expired'
@@ -65,19 +90,35 @@ app.post('/v1/webhooks/stripe', express.raw({ type: 'application/json' }), async
         : rawStatus === 'active' ? 'active'
           : rawStatus === 'past_due' ? 'billing_retry'
             : 'free';
-    await db.insert(subscriptionEntitlements).values({
-      parentAccountId,
-      status,
-      source: 'stripe',
-      plan: object.metadata?.plan,
-      providerCustomerId: typeof object.customer === 'string' ? object.customer : object.customer?.id,
-      providerSubscriptionId: object.object === 'subscription' ? object.id : object.subscription,
-      currentPeriodEndsAt: object.current_period_end ? new Date(object.current_period_end * 1000) : null,
-    }).onConflictDoUpdate({
-      target: subscriptionEntitlements.parentAccountId,
-      set: { status, source: 'stripe', updatedAt: new Date(), providerSubscriptionId: object.id },
-    });
+    const eventTime = new Date(event.created * 1000);
+    // Guard against out-of-order delivery: only overwrite if this event is newer
+    // than whatever is already stored.  Uses a raw WHERE clause on the upsert.
+    await db.execute(sql`
+      INSERT INTO subscription_entitlements
+        (parent_account_id, status, source, plan, provider_customer_id, provider_subscription_id, current_period_ends_at, updated_at)
+      VALUES (
+        ${parentAccountId},
+        ${status},
+        'stripe',
+        ${object.metadata?.plan ?? null},
+        ${typeof object.customer === 'string' ? object.customer : (object.customer?.id ?? null)},
+        ${object.id},
+        ${object.current_period_end ? new Date(object.current_period_end * 1000) : null},
+        ${eventTime}
+      )
+      ON CONFLICT (parent_account_id) DO UPDATE SET
+        status                  = EXCLUDED.status,
+        source                  = EXCLUDED.source,
+        plan                    = EXCLUDED.plan,
+        provider_customer_id    = EXCLUDED.provider_customer_id,
+        provider_subscription_id = EXCLUDED.provider_subscription_id,
+        current_period_ends_at  = EXCLUDED.current_period_ends_at,
+        updated_at              = EXCLUDED.updated_at
+      WHERE subscription_entitlements.updated_at < EXCLUDED.updated_at
+    `);
   }
+  // Only mark processed after the entitlement write succeeds.
+  // If we threw above, processedAt stays null and the next Stripe retry will reprocess.
   await db.update(webhookEvents).set({ processedAt: new Date() }).where(sql`${webhookEvents.id} = ${event.id}`);
   return response.json({ received: true });
 });
@@ -145,7 +186,27 @@ app.post('/v1/sync', requireSession('child'), rateLimit(120, 60_000), async (req
   response.json({ accepted: parsed.data.mutations.map((item) => item.idempotencyKey), serverTime: new Date().toISOString() });
 });
 
-app.get('/v1/entitlement', requireSession(), (_request, response) => response.json({ entitlement: normalizeEntitlement({ status: 'free' }) }));
+app.get('/v1/entitlement', requireSession(), async (request, response) => {
+  if (!db) return response.json({ entitlement: normalizeEntitlement({ status: 'free' }) });
+  const parentAccountId = request.session!.subject;
+  try {
+    const rows = await db.select().from(subscriptionEntitlements).where(sql`${subscriptionEntitlements.parentAccountId} = ${parentAccountId}`).limit(1);
+    if (!rows.length) return response.json({ entitlement: normalizeEntitlement({ status: 'free' }) });
+    const row = rows[0];
+    return response.json({
+      entitlement: normalizeEntitlement({
+        status: row.status,
+        parentAccountId: row.parentAccountId,
+        plan: row.plan as 'monthly' | 'annual' | undefined,
+        source: row.source as 'stripe' | 'apple' | 'preview' | undefined,
+        currentPeriodEndsAt: row.currentPeriodEndsAt?.toISOString(),
+        updatedAt: row.updatedAt?.toISOString(),
+      }),
+    });
+  } catch {
+    return response.json({ entitlement: normalizeEntitlement({ status: 'free' }) });
+  }
+});
 
 app.post('/v1/checkout', requireSession('parent'), rateLimit(10, 60_000), async (request, response) => {
   const parsed = z.object({ plan: z.enum(['monthly', 'annual']) }).safeParse(request.body);
@@ -153,14 +214,24 @@ app.post('/v1/checkout', requireSession('parent'), rateLimit(10, 60_000), async 
   if (!stripe) return response.status(503).json({ error: 'Stripe checkout is not configured' });
   const price = parsed.data.plan === 'monthly' ? config.STRIPE_MONTHLY_PRICE_ID : config.STRIPE_ANNUAL_PRICE_ID;
   if (!price) return response.status(503).json({ error: 'Subscription price is not configured' });
+  const parentAccountId = request.session!.subject;
+  // Ensure the parent account row exists so the webhook's FK-backed entitlement
+  // insert doesn't fail.  This is a no-op for accounts created via normal sign-up
+  // and covers dev sessions whose UUID is synthetic.
+  if (db) {
+    await db.insert(parentAccounts).values({
+      id: parentAccountId,
+      email: `checkout+${parentAccountId}@glitter.local`,
+    }).onConflictDoNothing();
+  }
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     line_items: [{ price, quantity: 1 }],
     success_url: `${config.PUBLIC_APP_URL}/parent?checkout=success`,
     cancel_url: `${config.PUBLIC_APP_URL}/plus?checkout=cancelled`,
-    client_reference_id: request.session!.subject,
-    metadata: { parentAccountId: request.session!.subject, plan: parsed.data.plan },
-    subscription_data: { trial_period_days: 7, metadata: { parentAccountId: request.session!.subject, plan: parsed.data.plan } },
+    client_reference_id: parentAccountId,
+    metadata: { parentAccountId, plan: parsed.data.plan },
+    subscription_data: { trial_period_days: 7, metadata: { parentAccountId, plan: parsed.data.plan } },
   });
   response.json({ url: session.url });
 });

@@ -1,8 +1,10 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Platform, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { hasPlusAccess } from '@shared/entitlements';
 import { useAppStore } from '@/store/app-store';
+import { apiClient } from '@/services/api-client';
+import { getOrCreateDevParentToken } from '@/services/session';
 import { Body, Card, Heading, Page, PremiumBadge, PrimaryButton, SecondaryButton } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
 
@@ -19,6 +21,28 @@ const features = [
 export default function PlusScreen() {
   const { data, enablePremiumPreview } = useAppStore();
   const premium = hasPlusAccess(data.entitlement);
+  const [checkoutLoading, setCheckoutLoading] = useState<'monthly' | 'annual' | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  async function startCheckout(plan: 'monthly' | 'annual') {
+    setCheckoutError(null);
+    setCheckoutLoading(plan);
+    try {
+      const token = await getOrCreateDevParentToken();
+      const { url } = await apiClient.checkout(token, plan);
+      if (Platform.OS === 'web') {
+        window.location.href = url;
+      } else {
+        const { Linking } = await import('react-native');
+        await Linking.openURL(url);
+      }
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : 'Checkout could not start. Try again.');
+    } finally {
+      setCheckoutLoading(null);
+    }
+  }
+
   return (
     <Page>
       <LinearGradient colors={[colors.lavenderSoft, colors.coralSoft, colors.butterSoft]} style={{ borderRadius: radii.large, padding: 24, gap: 12, alignItems: 'center' }}>
@@ -39,13 +63,34 @@ export default function PlusScreen() {
 
       <Card tone="lavender">
         <Text style={{ color: colors.ink, fontFamily: fonts.displayBold, fontSize: 28 }}>$39.99 <Text style={{ fontFamily: fonts.body, fontSize: 15 }}>/ year</Text></Text>
-        <Body>Seven days free, then $39.99 yearly. Cancel anytime in subscription settings. Monthly option: $4.99.</Body>
-        <Body muted>This local build uses a clearly labeled preview entitlement. App Store and Stripe checkout activate only after production credentials and review configuration are added.</Body>
-        <PrimaryButton label={premium ? 'Plus preview active ✓' : 'Start 7-day preview'} disabled={premium} onPress={enablePremiumPreview} />
-        <SecondaryButton label="Restore purchases (setup required)" onPress={() => undefined} />
+        <Body>Seven days free, then $39.99 yearly. Cancel anytime in subscription settings.</Body>
+
+        {checkoutError ? <Body muted>{checkoutError}</Body> : null}
+
+        {premium ? (
+          <PrimaryButton label="Glitter Plus active ✓" onPress={() => undefined} disabled />
+        ) : (
+          <View style={{ gap: 10 }}>
+            <PrimaryButton
+              label={checkoutLoading === 'annual' ? 'Opening checkout…' : 'Start 7-day free trial — $39.99/yr'}
+              disabled={checkoutLoading !== null}
+              onPress={() => startCheckout('annual')}
+            />
+            {checkoutLoading !== 'monthly' ? (
+              <SecondaryButton
+                label="Monthly — $4.99/mo"
+                onPress={() => startCheckout('monthly')}
+              />
+            ) : null}
+          </View>
+        )}
+
+        <Body muted>Developer preview: the button below grants a local trial without a real purchase. Stripe checkout above is the real purchase path.</Body>
+        {premium ? null : <SecondaryButton label="Enable local preview (no charge)" onPress={enablePremiumPreview} />}
+        <SecondaryButton label="Restore purchases" onPress={() => undefined} />
       </Card>
 
-      <Body muted>Subscriptions renew automatically unless canceled at least 24 hours before the current period ends. Production purchase screens will link to the Privacy Policy and Terms of Use.</Body>
+      <Body muted>Subscriptions renew automatically unless canceled at least 24 hours before the current period ends. Purchase screens link to the Privacy Policy and Terms of Use.</Body>
     </Page>
   );
 }

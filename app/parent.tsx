@@ -1,24 +1,69 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { predictNextPeriod } from '@shared/cycle';
 import { hasPlusAccess } from '@shared/entitlements';
 import { useAppStore } from '@/store/app-store';
+import { apiClient } from '@/services/api-client';
+import { getOrCreateDevParentToken } from '@/services/session';
 import { todayISO } from '@/utils/date';
 import { Body, Card, Divider, Heading, Page, PremiumBadge, PrimaryButton, SharedBanner } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
 
 export default function ParentScreen() {
-  const { data } = useAppStore();
+  const { data, setEntitlement } = useAppStore();
   const [answer, setAnswer] = useState('');
   const [unlocked, setUnlocked] = useState(false);
+  const [checkoutBanner, setCheckoutBanner] = useState<'success' | 'cancelled' | null>(null);
+  // null = polling not started, true = confirmed active/trialing, false = timed out
+  const [checkoutConfirmed, setCheckoutConfirmed] = useState<boolean | null>(null);
   const prediction = useMemo(() => predictNextPeriod(data.cycleEvents, todayISO()), [data.cycleEvents]);
   const premium = hasPlusAccess(data.entitlement);
   const sharedEntries = data.journalEntries.filter((entry) => !entry.deletedAt && data.shareGrants.some((grant) => grant.resourceType === 'journal' && grant.resourceId === entry.id && !grant.revokedAt));
   const recentMoods = data.checkIns.filter((item) => !item.deletedAt).slice(-7);
   const cramps = recentMoods.filter((item) => item.symptoms.includes('cramps')).length;
 
+  const params = useLocalSearchParams<{ checkout?: string }>();
+
+  // Detect Stripe redirect, then poll until the webhook has granted entitlement.
+  // Stripe fires webhooks asynchronously — the first fetch after redirect often
+  // still returns 'free'. We retry up to 6 times (≈12 s) before giving up.
+  useEffect(() => {
+    const status = params.checkout;
+    if (!status) return;
+    setCheckoutBanner(status === 'success' ? 'success' : 'cancelled');
+    if (status !== 'success') return;
+    setUnlocked(true);
+    setCheckoutConfirmed(null); // polling in progress
+    (async () => {
+      try {
+        const token = await getOrCreateDevParentToken();
+        const MAX_TRIES = 6;
+        const DELAY_MS = 2000;
+        for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+          if (attempt > 0) await new Promise<void>((resolve) => setTimeout(resolve, DELAY_MS));
+          const result = await apiClient.entitlement(token);
+          if (result.entitlement.status === 'active' || result.entitlement.status === 'trialing') {
+            setEntitlement(result.entitlement);
+            setCheckoutConfirmed(true);
+            return;
+          }
+        }
+        // Webhook hasn't landed within the polling window.
+        setCheckoutConfirmed(false);
+      } catch {
+        setCheckoutConfirmed(false);
+      }
+    })();
+  }, [params.checkout]);
+
   if (!unlocked) return (
     <Page>
+      {checkoutBanner === 'cancelled' ? (
+        <Card tone="butter">
+          <Body>Checkout was cancelled — no charge was made. You can try again from the Plus screen whenever you're ready.</Body>
+        </Card>
+      ) : null}
       <Card tone="butter">
         <Heading size={25}>Grown-ups only</Heading>
         <Body>This simple task prevents accidental entry by a child. Production accounts also require verified parent authentication and consent.</Body>
@@ -31,6 +76,29 @@ export default function ParentScreen() {
 
   return (
     <Page>
+      {checkoutBanner === 'success' ? (
+        <Card tone="lavender">
+          {checkoutConfirmed === true ? (
+            <>
+              <Text style={{ fontSize: 24 }}>🎉</Text>
+              <Heading size={20}>Welcome to Glitter Plus!</Heading>
+              <Body>Your subscription is active. All Plus features are now unlocked.</Body>
+            </>
+          ) : checkoutConfirmed === false ? (
+            <>
+              <Text style={{ fontSize: 24 }}>✓</Text>
+              <Heading size={20}>Payment received</Heading>
+              <Body>Your subscription is being set up — this usually takes just a moment. Reload this screen to check your status.</Body>
+            </>
+          ) : (
+            <>
+              <Text style={{ fontSize: 24 }}>⏳</Text>
+              <Heading size={20}>Confirming your subscription…</Heading>
+              <Body>Payment completed. Checking your subscription status — this takes just a few seconds.</Body>
+            </>
+          )}
+        </Card>
+      ) : null}
       <View style={{ gap: 5 }}><Heading>Support dashboard</Heading><Body muted>One linked child · prototype data on this device</Body></View>
       {data.profile.cloudSyncEnabled ? <SharedBanner /> : null}
       {!premium ? <Card tone="lavender"><PremiumBadge /><Heading size={20}>Parent Support Hub is a Plus benefit</Heading><Body>Consent and privacy controls remain available without Plus. Start the local preview to see the full dashboard.</Body></Card> : null}
@@ -47,7 +115,7 @@ export default function ParentScreen() {
       </Card>
       <Card tone="aqua">
         <Heading size={21}>Conversation starter</Heading>
-        <Body>“What would make period days at school feel easier? We can make a small plan together.”</Body>
+        <Body>"What would make period days at school feel easier? We can make a small plan together."</Body>
       </Card>
       <Body muted>Dashboard insights are supportive summaries, not medical diagnoses. Seek professional care for concerning symptoms.</Body>
     </Page>
