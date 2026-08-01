@@ -6,7 +6,11 @@ const schema = z.object({
   DATABASE_URL: z.string().optional(),
   SESSION_SECRET: z.string().min(32).optional(),
   FIELD_ENCRYPTION_KEY: z.string().optional(),
-  PUBLIC_APP_URL: z.string().url().default('http://localhost:8081'),
+  PUBLIC_APP_URL: z.string().url().default(
+    process.env.REPLIT_DEV_DOMAIN
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'http://localhost:8081'
+  ),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_MONTHLY_PRICE_ID: z.string().optional(),

@@ -13,7 +13,7 @@ import type { SyncMutation } from '../shared/types';
 import { config } from './config';
 import { db, checkDatabase } from './db/client';
 import { parentAccounts, subscriptionEntitlements, syncRecords, webhookEvents } from './db/schema';
-import { createMagicLinkToken, createSessionToken, requireSession, verifyMagicLinkToken } from './security/auth';
+import { consumeMagicLinkToken, createMagicLinkToken, createSessionToken, requireSession } from './security/auth';
 import { encryptField } from './security/crypto';
 
 const app = express();
@@ -181,8 +181,8 @@ app.get('/v1/auth/verify-link', rateLimit(20, 15 * 60_000), async (request, resp
   const token = typeof request.query.token === 'string' ? request.query.token : null;
   if (!token) return response.status(400).json({ error: 'Missing token' });
 
-  const claims = verifyMagicLinkToken(token);
-  if (!claims) return response.status(401).json({ error: 'This sign-in link has expired or is invalid. Please request a new one.' });
+  const claims = consumeMagicLinkToken(token);
+  if (!claims) return response.status(401).json({ error: 'This sign-in link has expired or has already been used. Please request a new one.' });
 
   const { email } = claims;
   let parentAccountId: string;

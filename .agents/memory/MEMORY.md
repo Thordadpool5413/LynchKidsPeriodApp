@@ -1,0 +1,1 @@
+- [Glitter dev setup on Replit](glitter-dev-setup.md) — metro proxy, PUBLIC_APP_URL fallback, expo-sqlite WASM fix, multi-merge npm corruption pattern.

@@ -22,6 +22,21 @@ export function createMagicLinkToken(email: string, ttlSeconds = 900): string {
   return `${payload}.${signature}`;
 }
 
+/**
+ * In-memory store of already-consumed magic-link token payloads.
+ * Maps payload → expiresAt (unix seconds) so expired entries can be pruned.
+ * A restart clears the store, but tokens also expire in 15 minutes so the
+ * window for replay after a restart is negligible.
+ */
+const usedMagicPayloads = new Map<string, number>();
+
+function pruneUsedMagicPayloads(): void {
+  const now = Math.floor(Date.now() / 1000);
+  for (const [key, exp] of usedMagicPayloads) {
+    if (exp < now) usedMagicPayloads.delete(key);
+  }
+}
+
 /** Verifies a magic-link token. Returns the embedded email, or null if invalid/expired. */
 export function verifyMagicLinkToken(token: string): { email: string } | null {
   const [payload, signature] = token.split('.');
@@ -35,6 +50,32 @@ export function verifyMagicLinkToken(token: string): { email: string } | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Like verifyMagicLinkToken but also enforces single-use: returns null and refuses
+ * the token if it has already been consumed, even if it hasn't expired yet.
+ */
+export function consumeMagicLinkToken(token: string): { email: string } | null {
+  const parts = token.split('.');
+  const payload = parts[0];
+  if (!payload) return null;
+
+  pruneUsedMagicPayloads();
+
+  if (usedMagicPayloads.has(payload)) return null;
+
+  const result = verifyMagicLinkToken(token);
+  if (!result) return null;
+
+  try {
+    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { expiresAt: number };
+    usedMagicPayloads.set(payload, claims.expiresAt);
+  } catch {
+    usedMagicPayloads.set(payload, Math.floor(Date.now() / 1000) + 900);
+  }
+
+  return result;
 }
 
 export function verifySessionToken(token: string): SessionClaims | null {

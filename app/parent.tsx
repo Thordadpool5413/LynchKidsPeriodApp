@@ -1,17 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { predictNextPeriod } from '@shared/cycle';
 import { hasPlusAccess } from '@shared/entitlements';
 import { useAppStore } from '@/store/app-store';
 import { apiClient } from '@/services/api-client';
-import { getStoredParentToken, requestSignInLink, verifyAndStoreToken } from '@/services/session';
+import { clearParentToken, getStoredParentToken, requestSignInLink, verifyAndStoreToken } from '@/services/session';
+import { normalizeEntitlement } from '@shared/entitlements';
 import { todayISO } from '@/utils/date';
 import { Body, Card, Divider, Heading, Page, PremiumBadge, PrimaryButton, SecondaryButton, SharedBanner } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
 
 export default function ParentScreen() {
   const { data, setEntitlement } = useAppStore();
+  const router = useRouter();
   const [answer, setAnswer] = useState('');
   const [unlocked, setUnlocked] = useState(false);
   const [checkoutBanner, setCheckoutBanner] = useState<'success' | 'cancelled' | null>(null);
@@ -47,9 +49,12 @@ export default function ParentScreen() {
         const token = await verifyAndStoreToken(magicToken);
         setParentToken(token);
         setSignInState('idle');
+        // Remove the magic token from the URL so a page refresh doesn't replay it.
+        router.replace('/parent');
       } catch (err) {
         setSignInError(err instanceof Error ? err.message : 'Sign-in link is invalid or has expired.');
         setSignInState('error');
+        router.replace('/parent');
       }
     })();
   }, [params.magic]);
@@ -74,6 +79,8 @@ export default function ParentScreen() {
     const status = params.checkout;
     if (!status) return;
     setCheckoutBanner(status === 'success' ? 'success' : 'cancelled');
+    // Replace the URL immediately so navigating away and back doesn't re-trigger the banner.
+    router.replace('/parent');
     if (status !== 'success') return;
     setUnlocked(true);
     setCheckoutConfirmed(null); // polling in progress
@@ -99,6 +106,16 @@ export default function ParentScreen() {
       }
     })();
   }, [params.checkout]);
+
+  function handleSignOut() {
+    clearParentToken();
+    setParentToken(null);
+    setSignInEmail('');
+    setSignInState('idle');
+    setSignInError(null);
+    // Reset entitlement to free so the UI reflects the signed-out state immediately.
+    setEntitlement(normalizeEntitlement({ status: 'free' }));
+  }
 
   async function handleRequestLink() {
     if (!signInEmail.trim()) return;
@@ -196,7 +213,13 @@ export default function ParentScreen() {
           )}
         </Card>
       ) : null}
-      <View style={{ gap: 5 }}><Heading>Support dashboard</Heading><Body muted>One linked child · prototype data on this device</Body></View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View style={{ gap: 5, flex: 1 }}>
+          <Heading>Support dashboard</Heading>
+          <Body muted>One linked child · prototype data on this device</Body>
+        </View>
+        <SecondaryButton label="Sign out" onPress={handleSignOut} />
+      </View>
       {data.profile.cloudSyncEnabled ? <SharedBanner /> : null}
       {!premium ? <Card tone="lavender"><PremiumBadge /><Heading size={20}>Parent Support Hub is a Plus benefit</Heading><Body>Consent and privacy controls remain available without Plus. Start the local preview to see the full dashboard.</Body></Card> : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, opacity: premium ? 1 : 0.45 }}>
