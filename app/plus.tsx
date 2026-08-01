@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { hasPlusAccess } from '@shared/entitlements';
 import { useAppStore } from '@/store/app-store';
 import { apiClient } from '@/services/api-client';
-import { getOrCreateDevParentToken } from '@/services/session';
+import { getStoredParentToken, requestSignInLink } from '@/services/session';
 import { Body, Card, Heading, Page, PremiumBadge, PrimaryButton, SecondaryButton } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
 
@@ -24,11 +24,27 @@ export default function PlusScreen() {
   const [checkoutLoading, setCheckoutLoading] = useState<'monthly' | 'annual' | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
+  // Sign-in-before-checkout flow
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<'monthly' | 'annual' | null>(null);
+  const [signInEmail, setSignInEmail] = useState('');
+  const [signInState, setSignInState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [signInError, setSignInError] = useState<string | null>(null);
+
   async function startCheckout(plan: 'monthly' | 'annual') {
     setCheckoutError(null);
+
+    // Check for a stored session token first.
+    const token = getStoredParentToken();
+    if (!token) {
+      // No session — prompt for sign-in before checkout.
+      setPendingPlan(plan);
+      setShowSignIn(true);
+      return;
+    }
+
     setCheckoutLoading(plan);
     try {
-      const token = await getOrCreateDevParentToken();
       const { url } = await apiClient.checkout(token, plan);
       if (Platform.OS === 'web') {
         window.location.href = url;
@@ -40,6 +56,19 @@ export default function PlusScreen() {
       setCheckoutError(err instanceof Error ? err.message : 'Checkout could not start. Try again.');
     } finally {
       setCheckoutLoading(null);
+    }
+  }
+
+  async function handleRequestLink() {
+    if (!signInEmail.trim()) return;
+    setSignInState('sending');
+    setSignInError(null);
+    try {
+      await requestSignInLink(signInEmail.trim());
+      setSignInState('sent');
+    } catch (err) {
+      setSignInError(err instanceof Error ? err.message : 'Could not send sign-in link. Try again.');
+      setSignInState('error');
     }
   }
 
@@ -67,7 +96,40 @@ export default function PlusScreen() {
 
         {checkoutError ? <Body muted>{checkoutError}</Body> : null}
 
-        {premium ? (
+        {showSignIn ? (
+          signInState === 'sent' ? (
+            <>
+              <Text style={{ fontSize: 24 }}>📬</Text>
+              <Heading size={20}>Check your email</Heading>
+              <Body>A sign-in link has been sent to <Text style={{ fontFamily: fonts.bodyBold }}>{signInEmail}</Text>. Tap the link to sign in, then come back here to complete your purchase.</Body>
+              <Body muted>The link expires in 15 minutes.</Body>
+              <SecondaryButton label="Use a different email" onPress={() => { setSignInState('idle'); setSignInEmail(''); }} />
+            </>
+          ) : (
+            <>
+              <Heading size={20}>Sign in to continue</Heading>
+              <Body>Enter your parent email to receive a secure sign-in link. Then come back here to complete your purchase{pendingPlan ? ` (${pendingPlan})` : ''}.</Body>
+              {signInState === 'error' && signInError ? <Body muted>{signInError}</Body> : null}
+              <TextInput
+                accessibilityLabel="Email address"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={signInEmail}
+                onChangeText={setSignInEmail}
+                placeholder="your@email.com"
+                placeholderTextColor={colors.ink + '66'}
+                style={{ minHeight: 50, borderWidth: 1.5, borderColor: colors.line, borderRadius: radii.small, paddingHorizontal: 14, color: colors.ink, fontFamily: fonts.body, fontSize: 18 }}
+              />
+              <PrimaryButton
+                label={signInState === 'sending' ? 'Sending link…' : 'Send sign-in link'}
+                disabled={signInState === 'sending' || !signInEmail.trim()}
+                onPress={handleRequestLink}
+              />
+              <SecondaryButton label="Cancel" onPress={() => { setShowSignIn(false); setPendingPlan(null); setSignInState('idle'); }} />
+            </>
+          )
+        ) : premium ? (
           <PrimaryButton label="Glitter Plus active ✓" onPress={() => undefined} disabled />
         ) : (
           <View style={{ gap: 10 }}>

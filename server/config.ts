@@ -15,12 +15,16 @@ const schema = z.object({
   OPENAI_MODEL: z.string().default('gpt-5.2'),
   OPENAI_ZDR_APPROVED: z.enum(['true', 'false']).default('false'),
   ASK_BLOOM_GENERATIVE_ENABLED: z.enum(['true', 'false']).default('false'),
+  /** nodemailer-compatible transport URL, e.g. smtp://user:pass@host:587  */
+  SMTP_URL: z.string().url().optional(),
+  /** Reply-to address shown on magic-link emails */
+  EMAIL_FROM: z.string().email().default('noreply@glitter.app'),
 });
 
 export const config = schema.parse(process.env);
 
 if (config.NODE_ENV === 'production') {
-  const required = ['DATABASE_URL', 'SESSION_SECRET', 'FIELD_ENCRYPTION_KEY'] as const;
+  const required = ['DATABASE_URL', 'SESSION_SECRET', 'FIELD_ENCRYPTION_KEY', 'SMTP_URL'] as const;
   const missing = required.filter((key) => !config[key]);
   if (missing.length) throw new Error(`Missing production secrets: ${missing.join(', ')}`);
 }

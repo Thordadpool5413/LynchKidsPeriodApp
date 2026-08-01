@@ -5,9 +5,9 @@ import { predictNextPeriod } from '@shared/cycle';
 import { hasPlusAccess } from '@shared/entitlements';
 import { useAppStore } from '@/store/app-store';
 import { apiClient } from '@/services/api-client';
-import { getOrCreateDevParentToken } from '@/services/session';
+import { getStoredParentToken, requestSignInLink, verifyAndStoreToken } from '@/services/session';
 import { todayISO } from '@/utils/date';
-import { Body, Card, Divider, Heading, Page, PremiumBadge, PrimaryButton, SharedBanner } from '@/components/ui';
+import { Body, Card, Divider, Heading, Page, PremiumBadge, PrimaryButton, SecondaryButton, SharedBanner } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
 
 export default function ParentScreen() {
@@ -17,13 +17,42 @@ export default function ParentScreen() {
   const [checkoutBanner, setCheckoutBanner] = useState<'success' | 'cancelled' | null>(null);
   // null = polling not started, true = confirmed active/trialing, false = timed out
   const [checkoutConfirmed, setCheckoutConfirmed] = useState<boolean | null>(null);
+
+  // Sign-in state
+  const [parentToken, setParentToken] = useState<string | null>(null);
+  const [signInEmail, setSignInEmail] = useState('');
+  const [signInState, setSignInState] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'error'>('idle');
+  const [signInError, setSignInError] = useState<string | null>(null);
+
   const prediction = useMemo(() => predictNextPeriod(data.cycleEvents, todayISO()), [data.cycleEvents]);
   const premium = hasPlusAccess(data.entitlement);
   const sharedEntries = data.journalEntries.filter((entry) => !entry.deletedAt && data.shareGrants.some((grant) => grant.resourceType === 'journal' && grant.resourceId === entry.id && !grant.revokedAt));
   const recentMoods = data.checkIns.filter((item) => !item.deletedAt).slice(-7);
   const cramps = recentMoods.filter((item) => item.symptoms.includes('cramps')).length;
 
-  const params = useLocalSearchParams<{ checkout?: string }>();
+  const params = useLocalSearchParams<{ checkout?: string; magic?: string }>();
+
+  // Handle magic-link token on load (e.g. user clicked the email link).
+  useEffect(() => {
+    const magicToken = params.magic;
+    if (!magicToken) {
+      // No magic token — check if a session is already stored.
+      setParentToken(getStoredParentToken());
+      return;
+    }
+    setUnlocked(true); // Skip the grown-up gate for link clicks.
+    setSignInState('verifying');
+    (async () => {
+      try {
+        const token = await verifyAndStoreToken(magicToken);
+        setParentToken(token);
+        setSignInState('idle');
+      } catch (err) {
+        setSignInError(err instanceof Error ? err.message : 'Sign-in link is invalid or has expired.');
+        setSignInState('error');
+      }
+    })();
+  }, [params.magic]);
 
   // Detect Stripe redirect, then poll until the webhook has granted entitlement.
   // Stripe fires webhooks asynchronously — the first fetch after redirect often
@@ -37,7 +66,8 @@ export default function ParentScreen() {
     setCheckoutConfirmed(null); // polling in progress
     (async () => {
       try {
-        const token = await getOrCreateDevParentToken();
+        const token = getStoredParentToken();
+        if (!token) { setCheckoutConfirmed(false); return; }
         const MAX_TRIES = 6;
         const DELAY_MS = 2000;
         for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
@@ -57,6 +87,19 @@ export default function ParentScreen() {
     })();
   }, [params.checkout]);
 
+  async function handleRequestLink() {
+    if (!signInEmail.trim()) return;
+    setSignInState('sending');
+    setSignInError(null);
+    try {
+      await requestSignInLink(signInEmail.trim());
+      setSignInState('sent');
+    } catch (err) {
+      setSignInError(err instanceof Error ? err.message : 'Could not send sign-in link. Try again.');
+      setSignInState('error');
+    }
+  }
+
   if (!unlocked) return (
     <Page>
       {checkoutBanner === 'cancelled' ? (
@@ -71,6 +114,47 @@ export default function ParentScreen() {
         <TextInput accessibilityLabel="Adult gate answer" keyboardType="number-pad" value={answer} onChangeText={setAnswer} style={{ minHeight: 50, borderWidth: 1.5, borderColor: colors.line, borderRadius: radii.small, paddingHorizontal: 14, color: colors.ink, fontFamily: fonts.body, fontSize: 18 }} />
         <PrimaryButton label="Enter grown-up space" disabled={answer !== '12'} onPress={() => setUnlocked(true)} />
       </Card>
+    </Page>
+  );
+
+  // Show sign-in form when there is no valid parent session.
+  if (!parentToken) return (
+    <Page>
+      {signInState === 'verifying' ? (
+        <Card tone="lavender">
+          <Body>Verifying your sign-in link…</Body>
+        </Card>
+      ) : signInState === 'sent' ? (
+        <Card tone="lavender">
+          <Text style={{ fontSize: 24 }}>📬</Text>
+          <Heading size={20}>Check your email</Heading>
+          <Body>A sign-in link has been sent to <Text style={{ fontFamily: fonts.bodyBold }}>{signInEmail}</Text>. Tap the link in the email to continue.</Body>
+          <Body muted>The link expires in 15 minutes. Check your spam folder if it doesn't arrive.</Body>
+          <SecondaryButton label="Use a different email" onPress={() => { setSignInState('idle'); setSignInEmail(''); }} />
+        </Card>
+      ) : (
+        <Card tone="butter">
+          <Heading size={25}>Sign in to your parent account</Heading>
+          <Body>Enter your email address and we'll send you a secure sign-in link. No password required.</Body>
+          {signInState === 'error' && signInError ? <Body muted>{signInError}</Body> : null}
+          <TextInput
+            accessibilityLabel="Email address"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            value={signInEmail}
+            onChangeText={setSignInEmail}
+            placeholder="your@email.com"
+            placeholderTextColor={colors.ink + '66'}
+            style={{ minHeight: 50, borderWidth: 1.5, borderColor: colors.line, borderRadius: radii.small, paddingHorizontal: 14, color: colors.ink, fontFamily: fonts.body, fontSize: 18 }}
+          />
+          <PrimaryButton
+            label={signInState === 'sending' ? 'Sending link…' : 'Send sign-in link'}
+            disabled={signInState === 'sending' || !signInEmail.trim()}
+            onPress={handleRequestLink}
+          />
+        </Card>
+      )}
     </Page>
   );
 

@@ -89,6 +89,65 @@ describe('Glitter API', () => {
     expect(response.body.accepted).toBe(true);
   });
 
+  it('returns 503 and never logs a token when acting as production without SMTP configured', async () => {
+    // Simulate a production environment with no SMTP transport.
+    const { config } = await import('./config');
+    const originalEnv = config.NODE_ENV;
+    (config as any).NODE_ENV = 'production';
+
+    const loggedLines: string[] = [];
+    const originalLog = console.info;
+    console.info = (...args: unknown[]) => { loggedLines.push(args.join(' ')); };
+
+    try {
+      const response = await request(app).post('/v1/auth/request-link').send({ email: 'attacker@example.com' });
+      // Must not succeed — delivery is impossible without SMTP in production.
+      expect(response.status).toBe(503);
+      // Response body must never contain a token or the link.
+      const body = JSON.stringify(response.body);
+      expect(body).not.toContain('magic');
+      expect(body).not.toContain('token');
+      // No link or email address must have been written to the log.
+      const logged = loggedLines.join('\n');
+      expect(logged).not.toContain('attacker@example.com');
+      expect(logged).not.toContain('magic');
+    } finally {
+      (config as any).NODE_ENV = originalEnv;
+      console.info = originalLog;
+    }
+  });
+
+  it('rejects a magic-link verify request with a missing or malformed token', async () => {
+    const missingToken = await request(app).get('/v1/auth/verify-link');
+    expect(missingToken.status).toBe(400);
+
+    const badToken = await request(app).get('/v1/auth/verify-link?token=not.a.valid.token');
+    expect(badToken.status).toBe(401);
+  });
+
+  it('issues a real parent session token after verifying a valid magic link', async () => {
+    // Step 1: Request a magic link. The server logs the link to stdout in dev (no SMTP).
+    const linkRequest = await request(app).post('/v1/auth/request-link').send({ email: 'test-parent@example.com' });
+    expect(linkRequest.status).toBe(202);
+
+    // Step 2: Generate a valid magic token directly (mirrors what the server embeds in the link).
+    const { createMagicLinkToken } = await import('./security/auth');
+    const magicToken = createMagicLinkToken('test-parent@example.com');
+
+    // Step 3: Verify the token and receive a session.
+    const verifyResponse = await request(app).get(`/v1/auth/verify-link?token=${encodeURIComponent(magicToken)}`);
+    expect(verifyResponse.status).toBe(200);
+    expect(typeof verifyResponse.body.token).toBe('string');
+    expect(typeof verifyResponse.body.parentAccountId).toBe('string');
+
+    // Step 4: The returned session token must work for authenticated endpoints.
+    const entitlementResponse = await request(app)
+      .get('/v1/entitlement')
+      .set('Authorization', `Bearer ${verifyResponse.body.token}`);
+    expect(entitlementResponse.status).toBe(200);
+    expect(entitlementResponse.body.entitlement.status).toBe('free');
+  });
+
   it('requires authentication for Ask Glitter', async () => {
     const response = await request(app).post('/v1/ask-bloom').send({ question: 'Are cramps normal?' });
     expect(response.status).toBe(401);

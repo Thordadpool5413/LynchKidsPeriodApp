@@ -14,6 +14,29 @@ export function createSessionToken(claims: Omit<SessionClaims, 'expiresAt'>, ttl
   return `${payload}.${signature}`;
 }
 
+/** Creates a short-lived signed token embedding an email address for magic-link sign-in. */
+export function createMagicLinkToken(email: string, ttlSeconds = 900): string {
+  const payload = Buffer.from(JSON.stringify({ email, expiresAt: Math.floor(Date.now() / 1000) + ttlSeconds })).toString('base64url');
+  // Use a distinct prefix so magic tokens cannot be replayed as session tokens.
+  const signature = createHmac('sha256', secret()).update(`magic.${payload}`).digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+/** Verifies a magic-link token. Returns the embedded email, or null if invalid/expired. */
+export function verifyMagicLinkToken(token: string): { email: string } | null {
+  const [payload, signature] = token.split('.');
+  if (!payload || !signature) return null;
+  const expected = createHmac('sha256', secret()).update(`magic.${payload}`).digest();
+  const provided = Buffer.from(signature, 'base64url');
+  if (expected.length !== provided.length || !timingSafeEqual(expected, provided)) return null;
+  try {
+    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { email: string; expiresAt: number };
+    return claims.expiresAt > Math.floor(Date.now() / 1000) ? { email: claims.email } : null;
+  } catch {
+    return null;
+  }
+}
+
 export function verifySessionToken(token: string): SessionClaims | null {
   const [payload, signature] = token.split('.');
   if (!payload || !signature) return null;

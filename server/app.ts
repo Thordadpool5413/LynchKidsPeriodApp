@@ -13,7 +13,7 @@ import type { SyncMutation } from '../shared/types';
 import { config } from './config';
 import { db, checkDatabase } from './db/client';
 import { parentAccounts, subscriptionEntitlements, syncRecords, webhookEvents } from './db/schema';
-import { createSessionToken, requireSession } from './security/auth';
+import { createMagicLinkToken, createSessionToken, requireSession, verifyMagicLinkToken } from './security/auth';
 import { encryptField } from './security/crypto';
 
 const app = express();
@@ -141,10 +141,66 @@ export function serveContent(catalog: ReturnType<typeof filterPublished>) {
 }
 app.get('/v1/content', serveContent(PUBLISHED_CONTENT));
 
-app.post('/v1/auth/request-link', rateLimit(5, 15 * 60_000), (request, response) => {
+app.post('/v1/auth/request-link', rateLimit(5, 15 * 60_000), async (request, response) => {
   const parsed = z.object({ email: z.string().email() }).safeParse(request.body);
   if (!parsed.success) return response.status(400).json({ error: 'Enter a valid email address' });
-  return response.status(202).json({ accepted: true, message: 'If this account exists, a sign-in link will be sent.' });
+  const { email } = parsed.data;
+  const token = createMagicLinkToken(email);
+  const link = `${config.PUBLIC_APP_URL}/parent?magic=${encodeURIComponent(token)}`;
+
+  if (config.SMTP_URL) {
+    try {
+      const nodemailer = await import('nodemailer');
+      const transport = nodemailer.createTransport(config.SMTP_URL);
+      await transport.sendMail({
+        from: config.EMAIL_FROM,
+        to: email,
+        subject: 'Sign in to Glitter',
+        text: `Tap the link below to sign in to your Glitter parent account.\n\nThis link expires in 15 minutes and can only be used once.\n\n${link}\n\nIf you did not request this, you can safely ignore this email.`,
+        html: `<p>Tap the link below to sign in to your Glitter parent account.</p><p>This link expires in 15 minutes and can only be used once.</p><p><a href="${link}">Sign in to Glitter</a></p><p>If you did not request this, you can safely ignore this email.</p>`,
+      });
+    } catch (err) {
+      console.error('[glitter-api] Failed to send magic-link email:', err instanceof Error ? err.message : err);
+      return response.status(503).json({ error: 'Could not send sign-in email. Please try again.' });
+    }
+  } else if (config.NODE_ENV !== 'production') {
+    // No SMTP configured — log the link only in dev/test so developers can follow it manually.
+    // This branch is unreachable in production because config.ts requires SMTP_URL there.
+    console.info(`[glitter-api] Magic link for ${email}: ${link}`);
+  } else {
+    // Production with no SMTP: refuse the request rather than silently failing to deliver.
+    return response.status(503).json({ error: 'Email delivery is not configured. Contact support.' });
+  }
+
+  return response.status(202).json({ accepted: true, message: 'If this address is valid, a sign-in link will be sent.' });
+});
+
+app.get('/v1/auth/verify-link', rateLimit(20, 15 * 60_000), async (request, response) => {
+  const token = typeof request.query.token === 'string' ? request.query.token : null;
+  if (!token) return response.status(400).json({ error: 'Missing token' });
+
+  const claims = verifyMagicLinkToken(token);
+  if (!claims) return response.status(401).json({ error: 'This sign-in link has expired or is invalid. Please request a new one.' });
+
+  const { email } = claims;
+  let parentAccountId: string;
+
+  if (db) {
+    // Upsert the parent account and return its id.
+    const rows = await db.insert(parentAccounts).values({ email }).onConflictDoUpdate({
+      target: parentAccounts.email,
+      set: { emailVerifiedAt: new Date() },
+    }).returning({ id: parentAccounts.id });
+    parentAccountId = rows[0].id;
+  } else {
+    // No database in dev — derive a deterministic UUID from the email.
+    const { createHash } = await import('node:crypto');
+    const hash = createHash('sha256').update(email).digest('hex');
+    parentAccountId = `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-8${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+  }
+
+  const sessionToken = createSessionToken({ subject: parentAccountId, role: 'parent' });
+  return response.json({ token: sessionToken, parentAccountId });
 });
 
 app.post('/v1/dev/session', rateLimit(10, 60_000), (request, response) => {
