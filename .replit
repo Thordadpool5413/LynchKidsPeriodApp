@@ -1,0 +1,14 @@
+run = "npm run dev"
+entrypoint = "package.json"
+
+[deployment]
+run = "npm run api:start"
+build = "npm run web:export"
+
+[[ports]]
+localPort = 8081
+externalPort = 80
+
+[[ports]]
+localPort = 8787
+externalPort = 3000
