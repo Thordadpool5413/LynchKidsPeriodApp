@@ -4,10 +4,25 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@shared/*": ["shared/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@shared/*": [
+        "shared/*"
+      ]
     },
-    "types": ["node", "vitest/globals"]
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
   },
-  "include": ["app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx", "shared/**/*.ts", "server/**/*.ts", "expo-env.d.ts"]
+  "include": [
+    "app/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "shared/**/*.ts",
+    "server/**/*.ts",
+    "expo-env.d.ts",
+    ".expo/types/**/*.ts"
+  ]
 }
