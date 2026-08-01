@@ -1,5 +1,6 @@
 run = "npm run dev"
 entrypoint = "package.json"
+modules = ["nodejs-20"]
 
 [deployment]
 run = "npm run api:start"
@@ -12,3 +13,6 @@ externalPort = 80
 [[ports]]
 localPort = 8787
 externalPort = 3000
+
+[nix]
+channel = "stable-25_05"
