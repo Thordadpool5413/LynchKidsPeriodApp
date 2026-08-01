@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { sql } from 'drizzle-orm';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { EDUCATION_CONTENT, findCuratedAnswer } from '../shared/content';
+import { PUBLISHED_CONTENT, filterPublished, findCuratedAnswer } from '../shared/content';
 import { normalizeEntitlement } from '../shared/entitlements';
 import { classifySafety, SAFETY_RESPONSES } from '../shared/safety';
 import type { SyncMutation } from '../shared/types';
@@ -135,7 +135,11 @@ app.get('/healthz', async (_request, response) => {
   });
 });
 
-app.get('/v1/content', (_request, response) => response.json({ items: EDUCATION_CONTENT }));
+// Exported for testing: allows injecting a catalog with known reviewed/draft items.
+export function serveContent(catalog: ReturnType<typeof filterPublished>) {
+  return (_request: Request, response: Response) => response.json({ items: catalog });
+}
+app.get('/v1/content', serveContent(PUBLISHED_CONTENT));
 
 app.post('/v1/auth/request-link', rateLimit(5, 15 * 60_000), (request, response) => {
   const parsed = z.object({ email: z.string().email() }).safeParse(request.body);
