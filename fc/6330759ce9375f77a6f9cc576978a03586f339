@@ -1,0 +1,19 @@
+expo-env.d.ts
+  s_39b17da45b28ef::t_7a42ec14d01ded 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "fc6330759ce9375f77a6f9cc576978a03586f339",
+  "prompts": {},
+  "sessions": {
+    "s_39b17da45b28ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb647-6374-7a83-a050-417b87bcd94a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Thordadpool5413 <nick.lynch.coaching@outlook.com>"
+    }
+  }
+}
