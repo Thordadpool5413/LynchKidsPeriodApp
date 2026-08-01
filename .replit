@@ -1,6 +1,6 @@
 run = "npm run dev"
 entrypoint = "package.json"
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16"]
 
 [deployment]
 run = "npm run api:start"
