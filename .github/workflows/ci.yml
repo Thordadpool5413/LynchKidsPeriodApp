@@ -1,4 +1,4 @@
-name: BloomBuddy CI
+name: Glitter CI
 
 on:
   push:
