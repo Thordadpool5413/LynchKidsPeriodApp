@@ -54,6 +54,19 @@ export default function ParentScreen() {
     })();
   }, [params.magic]);
 
+  // Refresh entitlement from the server on each visit once a parent session is available.
+  useEffect(() => {
+    if (!parentToken) return;
+    (async () => {
+      try {
+        const result = await apiClient.entitlement(parentToken);
+        setEntitlement(result.entitlement);
+      } catch {
+        // Non-fatal: store value stays as-is if the network call fails.
+      }
+    })();
+  }, [parentToken]);
+
   // Detect Stripe redirect, then poll until the webhook has granted entitlement.
   // Stripe fires webhooks asynchronously — the first fetch after redirect often
   // still returns 'free'. We retry up to 6 times (≈12 s) before giving up.

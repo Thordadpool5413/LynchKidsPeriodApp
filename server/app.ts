@@ -95,7 +95,7 @@ app.post('/v1/webhooks/stripe', express.raw({ type: 'application/json' }), async
     // than whatever is already stored.  Uses a raw WHERE clause on the upsert.
     await db.execute(sql`
       INSERT INTO subscription_entitlements
-        (parent_account_id, status, source, plan, provider_customer_id, provider_subscription_id, current_period_ends_at, updated_at)
+        (parent_account_id, status, source, plan, provider_customer_id, provider_subscription_id, current_period_ends_at, trial_ends_at, updated_at)
       VALUES (
         ${parentAccountId},
         ${status},
@@ -104,6 +104,7 @@ app.post('/v1/webhooks/stripe', express.raw({ type: 'application/json' }), async
         ${typeof object.customer === 'string' ? object.customer : (object.customer?.id ?? null)},
         ${object.id},
         ${object.current_period_end ? new Date(object.current_period_end * 1000) : null},
+        ${object.trial_end ? new Date(object.trial_end * 1000) : null},
         ${eventTime}
       )
       ON CONFLICT (parent_account_id) DO UPDATE SET
@@ -113,6 +114,7 @@ app.post('/v1/webhooks/stripe', express.raw({ type: 'application/json' }), async
         provider_customer_id    = EXCLUDED.provider_customer_id,
         provider_subscription_id = EXCLUDED.provider_subscription_id,
         current_period_ends_at  = EXCLUDED.current_period_ends_at,
+        trial_ends_at           = EXCLUDED.trial_ends_at,
         updated_at              = EXCLUDED.updated_at
       WHERE subscription_entitlements.updated_at < EXCLUDED.updated_at
     `);
@@ -260,6 +262,7 @@ app.get('/v1/entitlement', requireSession(), async (request, response) => {
         plan: row.plan as 'monthly' | 'annual' | undefined,
         source: row.source as 'stripe' | 'apple' | 'preview' | undefined,
         currentPeriodEndsAt: row.currentPeriodEndsAt?.toISOString(),
+        trialEndsAt: row.trialEndsAt?.toISOString(),
         updatedAt: row.updatedAt?.toISOString(),
       }),
     });
@@ -294,6 +297,24 @@ app.post('/v1/checkout', requireSession('parent'), rateLimit(10, 60_000), async 
     subscription_data: { trial_period_days: 7, metadata: { parentAccountId, plan: parsed.data.plan } },
   });
   response.json({ url: session.url });
+});
+
+app.post('/v1/billing/portal', requireSession('parent'), rateLimit(10, 60_000), async (request, response) => {
+  if (!stripe) return response.status(503).json({ error: 'Stripe is not configured' });
+  if (!db) return response.status(503).json({ error: 'Database is not configured' });
+  const parentAccountId = request.session!.subject;
+  const rows = await db.select({ providerCustomerId: subscriptionEntitlements.providerCustomerId })
+    .from(subscriptionEntitlements)
+    .where(sql`${subscriptionEntitlements.parentAccountId} = ${parentAccountId}`)
+    .limit(1);
+  if (!rows.length || !rows[0].providerCustomerId) {
+    return response.status(404).json({ error: 'No billing record found. Please contact support.' });
+  }
+  const portalSession = await stripe.billingPortal.sessions.create({
+    customer: rows[0].providerCustomerId,
+    return_url: `${config.PUBLIC_APP_URL}/plus`,
+  });
+  return response.json({ url: portalSession.url });
 });
 
 app.post('/v1/webhooks/apple', rateLimit(120, 60_000), (_request, response) => {

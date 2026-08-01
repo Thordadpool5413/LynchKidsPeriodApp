@@ -2,11 +2,34 @@ import React, { useState } from 'react';
 import { Platform, Text, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { hasPlusAccess } from '@shared/entitlements';
+import type { EntitlementStatus } from '@shared/types';
 import { useAppStore } from '@/store/app-store';
 import { apiClient } from '@/services/api-client';
 import { getStoredParentToken, requestSignInLink } from '@/services/session';
 import { Body, Card, Heading, Page, PremiumBadge, PrimaryButton, SecondaryButton } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
+
+function statusLabel(status: EntitlementStatus): string {
+  switch (status) {
+    case 'trialing': return 'Free trial';
+    case 'active': return 'Active';
+    case 'grace_period': return 'Active (grace period)';
+    case 'billing_retry': return 'Past due — update payment';
+    case 'expired': return 'Expired';
+    default: return status;
+  }
+}
+
+function statusColor(status: EntitlementStatus): string {
+  if (status === 'trialing' || status === 'active' || status === 'grace_period') return colors.lavender;
+  if (status === 'billing_retry') return '#c0392b';
+  return colors.ink;
+}
+
+function formatDate(iso: string | undefined): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
 
 const features = [
   ['💬', 'Ask Glitter', 'Private, age-appropriate answers from reviewed Glitter lessons.'],
@@ -21,8 +44,13 @@ const features = [
 export default function PlusScreen() {
   const { data, enablePremiumPreview } = useAppStore();
   const premium = hasPlusAccess(data.entitlement);
+  const entitlement = data.entitlement;
+  // Show billing info for any subscriber state that implies an existing Stripe record.
+  const hasSubscriptionRecord = entitlement.status !== 'free';
   const [checkoutLoading, setCheckoutLoading] = useState<'monthly' | 'annual' | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
 
   // Sign-in-before-checkout flow
   const [showSignIn, setShowSignIn] = useState(false);
@@ -56,6 +84,29 @@ export default function PlusScreen() {
       setCheckoutError(err instanceof Error ? err.message : 'Checkout could not start. Try again.');
     } finally {
       setCheckoutLoading(null);
+    }
+  }
+
+  async function openPortal() {
+    const token = getStoredParentToken();
+    if (!token) {
+      setPortalError('Sign in to your parent account to manage your subscription.');
+      return;
+    }
+    setPortalLoading(true);
+    setPortalError(null);
+    try {
+      const { url } = await apiClient.billingPortal(token);
+      if (Platform.OS === 'web') {
+        window.location.href = url;
+      } else {
+        const { Linking } = await import('react-native');
+        await Linking.openURL(url);
+      }
+    } catch (err) {
+      setPortalError(err instanceof Error ? err.message : 'Could not open billing portal. Try again.');
+    } finally {
+      setPortalLoading(false);
     }
   }
 
@@ -96,6 +147,37 @@ export default function PlusScreen() {
 
         {checkoutError ? <Body muted>{checkoutError}</Body> : null}
 
+        {hasSubscriptionRecord ? (
+          <View style={{ gap: 8 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+              <Body muted>Status</Body>
+              <Text style={{ fontFamily: fonts.bodyBold, color: statusColor(entitlement.status) }}>{statusLabel(entitlement.status)}</Text>
+            </View>
+            {entitlement.plan ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+                <Body muted>Plan</Body>
+                <Text style={{ fontFamily: fonts.bodyBold, color: colors.ink }}>{entitlement.plan === 'annual' ? 'Annual' : 'Monthly'}</Text>
+              </View>
+            ) : null}
+            {entitlement.status === 'trialing' && entitlement.trialEndsAt ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+                <Body muted>Trial ends</Body>
+                <Text style={{ fontFamily: fonts.bodyBold, color: colors.ink }}>{formatDate(entitlement.trialEndsAt)}</Text>
+              </View>
+            ) : (entitlement.status === 'active' || entitlement.status === 'grace_period') && entitlement.currentPeriodEndsAt ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+                <Body muted>Renews</Body>
+                <Text style={{ fontFamily: fonts.bodyBold, color: colors.ink }}>{formatDate(entitlement.currentPeriodEndsAt)}</Text>
+              </View>
+            ) : null}
+            {portalError ? <Body muted>{portalError}</Body> : null}
+            <SecondaryButton
+              label={portalLoading ? 'Opening portal…' : 'Manage subscription'}
+              onPress={openPortal}
+            />
+          </View>
+        ) : null}
+
         {showSignIn ? (
           signInState === 'sent' ? (
             <>
@@ -131,7 +213,7 @@ export default function PlusScreen() {
           )
         ) : premium ? (
           <PrimaryButton label="Glitter Plus active ✓" onPress={() => undefined} disabled />
-        ) : (
+        ) : !hasSubscriptionRecord ? (
           <View style={{ gap: 10 }}>
             <PrimaryButton
               label={checkoutLoading === 'annual' ? 'Opening checkout…' : 'Start 7-day free trial — $39.99/yr'}
@@ -145,10 +227,10 @@ export default function PlusScreen() {
               />
             ) : null}
           </View>
-        )}
+        ) : null}
 
         <Body muted>Developer preview: the button below grants a local trial without a real purchase. Stripe checkout above is the real purchase path.</Body>
-        {premium ? null : <SecondaryButton label="Enable local preview (no charge)" onPress={enablePremiumPreview} />}
+        {hasSubscriptionRecord ? null : <SecondaryButton label="Enable local preview (no charge)" onPress={enablePremiumPreview} />}
         <SecondaryButton label="Restore purchases" onPress={() => undefined} />
       </Card>
 

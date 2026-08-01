@@ -63,6 +63,7 @@ export const subscriptionEntitlements = pgTable('subscription_entitlements', {
   providerCustomerId: text('provider_customer_id'),
   providerSubscriptionId: text('provider_subscription_id'),
   currentPeriodEndsAt: timestamp('current_period_ends_at', { withTimezone: true }),
+  trialEndsAt: timestamp('trial_ends_at', { withTimezone: true }),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [uniqueIndex('entitlement_parent_unique').on(table.parentAccountId)]);
 
