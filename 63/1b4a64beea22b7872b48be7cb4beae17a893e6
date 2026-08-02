@@ -1,0 +1,24 @@
+server/db/migrations/meta/_journal.json
+  s_39b17da45b28ef::t_15bfa9d25e075d 15,27
+server/db/migrations/journal.test.ts
+  s_39b17da45b28ef::t_5f9e3e85bf23cc 1,3-11,13-24
+  s_39b17da45b28ef::t_26f13f92933a5a 2,12
+server/config.ts
+  s_39b17da45b28ef::t_15bfa9d25e075d 46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "631b4a64beea22b7872b48be7cb4beae17a893e6",
+  "prompts": {},
+  "sessions": {
+    "s_39b17da45b28ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb647-6374-7a83-a050-417b87bcd94a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Thordadpool5413 <nick.lynch.coaching@outlook.com>"
+    }
+  }
+}
