@@ -12,7 +12,7 @@ export default function SchoolKitScreen() {
   const [checked, setChecked] = useState<string[]>([]);
   return (
     <Page>
-      <Card tone="aqua"><PremiumBadge /><Heading size={24}>Quiet confidence for school 🎒</Heading><Body>Build a small kit and practice simple words before you need them.</Body></Card>
+      <Card tone="aqua"><PremiumBadge /><Heading size={24}>Quiet confidence for school</Heading><Body>Build a small kit and practice simple words before you need them.</Body></Card>
       <Card>
         <Heading size={20}>My little kit</Heading>
         {kitItems.map((item) => <ChoiceChip key={item} label={item} emoji={checked.includes(item) ? '✅' : '○'} selected={checked.includes(item)} onPress={() => premium && setChecked((current) => current.includes(item) ? current.filter((value) => value !== item) : [...current, item])} />)}

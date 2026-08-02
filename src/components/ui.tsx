@@ -3,8 +3,9 @@ import { Pressable, ScrollView, Text, useWindowDimensions, View, type PressableP
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { colors, fonts, radii, shadows } from '@/theme';
+import { GardenGlyph } from '@/components/garden-glyph';
 
-export function Page({ children, gap = 18 }: { children: React.ReactNode; gap?: number }) {
+export function Page({ children, gap = 18, maxWidth = 920 }: { children: React.ReactNode; gap?: number; maxWidth?: number }) {
   const { width } = useWindowDimensions();
   return (
     <ScrollView
@@ -12,7 +13,7 @@ export function Page({ children, gap = 18 }: { children: React.ReactNode; gap?: 
       style={{ flex: 1, backgroundColor: colors.canvas }}
       contentContainerStyle={{
         width: '100%',
-        maxWidth: 920,
+        maxWidth,
         alignSelf: 'center',
         paddingHorizontal: width < 520 ? 18 : 28,
         paddingTop: 18,
@@ -127,7 +128,7 @@ export function ChoiceChip({ label, emoji, selected, onPress }: { label: string;
         backgroundColor: selected ? colors.lavenderSoft : pressed ? colors.butterSoft : '#FFFFFF',
       })}
     >
-      {emoji ? <Text style={{ fontSize: 19 }}>{emoji}</Text> : null}
+      {emoji ? <Text importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={{ fontSize: 19 }}>{emoji}</Text> : null}
       <Text style={{ color: colors.ink, fontFamily: fonts.bodyBold, fontSize: 14 }}>{label}</Text>
     </Pressable>
   );
@@ -136,7 +137,7 @@ export function ChoiceChip({ label, emoji, selected, onPress }: { label: string;
 export function SharedBanner() {
   return (
     <View accessibilityRole="text" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', backgroundColor: colors.aquaSoft, borderRadius: radii.pill, paddingVertical: 7, paddingHorizontal: 11 }}>
-      <Text style={{ fontSize: 14 }}>☁️</Text>
+      <GardenGlyph name="lock" color={colors.success} size={18} />
       <Text selectable style={{ color: colors.ink, fontFamily: fonts.utility, fontSize: 12 }}>Tracking shared with your grown-up</Text>
     </View>
   );
@@ -154,10 +155,10 @@ export function Divider() {
   return <View style={{ height: 1, backgroundColor: colors.line }} />;
 }
 
-export function EmptyState({ emoji, title, body }: { emoji: string; title: string; body: string }) {
+export function EmptyState({ emoji, title, body }: { emoji?: string; title: string; body: string }) {
   return (
     <View style={{ alignItems: 'center', gap: 8, paddingVertical: 22, paddingHorizontal: 16 }}>
-      <Text style={{ fontSize: 38 }}>{emoji}</Text>
+      {emoji ? <Text importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={{ fontSize: 38 }}>{emoji}</Text> : null}
       <Text selectable style={{ color: colors.ink, fontFamily: fonts.display, fontSize: 20, textAlign: 'center' }}>{title}</Text>
       <Body muted center>{body}</Body>
     </View>

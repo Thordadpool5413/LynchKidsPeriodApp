@@ -5,7 +5,7 @@ import { hasPlusAccess } from '@shared/entitlements';
 import type { EntitlementStatus } from '@shared/types';
 import { useAppStore } from '@/store/app-store';
 import { apiClient } from '@/services/api-client';
-import { getStoredParentToken, requestSignInLink } from '@/services/session';
+import { readCloudSession } from '@/services/cloud-session';
 import { Body, Card, Heading, Page, PremiumBadge, PrimaryButton, SecondaryButton } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
 
@@ -63,8 +63,8 @@ export default function PlusScreen() {
     setCheckoutError(null);
 
     // Check for a stored session token first.
-    const token = getStoredParentToken();
-    if (!token) {
+    const session = await readCloudSession();
+    if (!session || session.role !== 'parent') {
       // No session — prompt for sign-in before checkout.
       setPendingPlan(plan);
       setShowSignIn(true);
@@ -73,7 +73,7 @@ export default function PlusScreen() {
 
     setCheckoutLoading(plan);
     try {
-      const { url } = await apiClient.checkout(token, plan);
+      const { url } = await apiClient.checkout(session.token, plan);
       if (Platform.OS === 'web') {
         window.location.href = url;
       } else {
@@ -88,15 +88,15 @@ export default function PlusScreen() {
   }
 
   async function openPortal() {
-    const token = getStoredParentToken();
-    if (!token) {
+    const session = await readCloudSession();
+    if (!session || session.role !== 'parent') {
       setPortalError('Sign in to your parent account to manage your subscription.');
       return;
     }
     setPortalLoading(true);
     setPortalError(null);
     try {
-      const { url } = await apiClient.billingPortal(token);
+      const { url } = await apiClient.billingPortal(session.token);
       if (Platform.OS === 'web') {
         window.location.href = url;
       } else {
@@ -115,7 +115,7 @@ export default function PlusScreen() {
     setSignInState('sending');
     setSignInError(null);
     try {
-      await requestSignInLink(signInEmail.trim());
+      await apiClient.requestParentLink(signInEmail.trim());
       setSignInState('sent');
     } catch (err) {
       setSignInError(err instanceof Error ? err.message : 'Could not send sign-in link. Try again.');
@@ -229,8 +229,8 @@ export default function PlusScreen() {
           </View>
         ) : null}
 
-        <Body muted>Developer preview: the button below grants a local trial without a real purchase. Stripe checkout above is the real purchase path.</Body>
-        {hasSubscriptionRecord ? null : <SecondaryButton label="Enable local preview (no charge)" onPress={enablePremiumPreview} />}
+        {__DEV__ ? <Body muted>Developer preview: the button below grants a local trial without a real purchase. Stripe checkout above is the real purchase path.</Body> : null}
+        {__DEV__ && !hasSubscriptionRecord ? <SecondaryButton label="Enable local preview (no charge)" onPress={enablePremiumPreview} /> : null}
         <SecondaryButton label="Restore purchases" onPress={() => undefined} />
       </Card>
 

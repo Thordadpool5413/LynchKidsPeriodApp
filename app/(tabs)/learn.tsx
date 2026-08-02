@@ -23,7 +23,7 @@ export default function LearnScreen() {
   return (
     <Page>
       <Card tone="butter">
-        <Heading size={24}>No weird words. No scary guesses. 🌈</Heading>
+        <Heading size={24}>No weird words. No scary guesses.</Heading>
         <Body>Short, honest answers written for growing bodies. Content is published once it has passed clinician review.</Body>
       </Card>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

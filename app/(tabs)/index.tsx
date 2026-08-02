@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import type { Mood, Symptom } from '@shared/types';
@@ -9,13 +9,16 @@ import { todayISO } from '@/utils/date';
 import { BloomRing } from '@/components/bloom-ring';
 import { Body, Card, ChoiceChip, Eyebrow, Heading, Page, PremiumBadge, PrimaryButton, SharedBanner } from '@/components/ui';
 import { colors, fonts, radii } from '@/theme';
+import { GardenGlyph } from '@/components/garden-glyph';
+import { readCloudSession } from '@/services/cloud-session';
+import { apiClient } from '@/services/api-client';
 
-const moods: { value: Mood; label: string; emoji: string }[] = [
-  { value: 'good', label: 'Good', emoji: '😊' },
-  { value: 'calm', label: 'Calm', emoji: '😌' },
-  { value: 'tired', label: 'Tired', emoji: '🥱' },
-  { value: 'emotional', label: 'Emotional', emoji: '🥹' },
-  { value: 'worried', label: 'Worried', emoji: '😟' },
+const moods: { value: Mood; label: string }[] = [
+  { value: 'good', label: 'Good' },
+  { value: 'calm', label: 'Calm' },
+  { value: 'tired', label: 'Tired' },
+  { value: 'emotional', label: 'Emotional' },
+  { value: 'worried', label: 'Worried' },
 ];
 
 export default function HomeScreen() {
@@ -23,11 +26,24 @@ export default function HomeScreen() {
   const [mood, setMood] = useState<Mood | null>(null);
   const [cramps, setCramps] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [parentReminderDisclosure, setParentReminderDisclosure] = useState<string | null>(null);
   const today = todayISO();
   const prediction = useMemo(() => predictNextPeriod(data.cycleEvents, today), [data.cycleEvents, today]);
   const premium = hasPlusAccess(data.entitlement);
   const todayPeriod = data.cycleEvents.find((event) => event.date === today && !event.deletedAt && event.kind !== 'not-on-period');
   const greeting = data.profile.nickname ? `Hey ${data.profile.nickname}, how are you feeling?` : 'Hey girl, how are you feeling?';
+
+  useEffect(() => {
+    let active = true;
+    void readCloudSession().then(async (session) => {
+      if (!session || session.role !== 'child') return;
+      const status = await apiClient.childLinkStatus(session.token);
+      if (active && status.parentRemindersEnabled) {
+        setParentReminderDisclosure(status.disclosure ?? 'Your grown-up receives private garden reminders.');
+      }
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
 
   const saveFeeling = () => {
     if (!mood) return;
@@ -41,6 +57,12 @@ export default function HomeScreen() {
       <View style={{ height: 12, backgroundColor: colors.lavenderSoft }} />
       <Page>
         {data.profile.cloudSyncEnabled ? <SharedBanner /> : null}
+        {parentReminderDisclosure ? (
+          <Card tone="aqua" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 }}>
+            <GardenGlyph name="lock" color={colors.success} size={24} />
+            <Body>{parentReminderDisclosure}</Body>
+          </Card>
+        ) : null}
         <View style={{ gap: 5 }}>
           <Eyebrow>Today in your garden</Eyebrow>
           <Heading>{greeting}</Heading>
@@ -53,8 +75,8 @@ export default function HomeScreen() {
         <Card>
           <Heading size={21}>Quick check-in</Heading>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 9 }}>
-            {moods.map((item) => <ChoiceChip key={item.value} label={item.label} emoji={item.emoji} selected={mood === item.value} onPress={() => { setMood(item.value); setSaved(false); }} />)}
-            <ChoiceChip label="Cramps" emoji="🫶" selected={cramps} onPress={() => { setCramps((value) => !value); setSaved(false); }} />
+            {moods.map((item) => <ChoiceChip key={item.value} label={item.label} selected={mood === item.value} onPress={() => { setMood(item.value); setSaved(false); }} />)}
+            <ChoiceChip label="Cramps" selected={cramps} onPress={() => { setCramps((value) => !value); setSaved(false); }} />
           </View>
           <PrimaryButton label={saved ? 'Feeling saved ✓' : 'Save how I feel'} disabled={!mood} onPress={saveFeeling} />
         </Card>
@@ -65,7 +87,7 @@ export default function HomeScreen() {
               <Heading size={20}>{todayPeriod ? 'You marked today as a period day' : 'Are you on your period today?'}</Heading>
               <Body muted>You can always change this later in Calendar.</Body>
             </View>
-            <Text style={{ fontSize: 38 }}>{todayPeriod ? '🌺' : '🌱'}</Text>
+            <GardenGlyph name="flower" color={todayPeriod ? colors.coral : colors.success} size={38} />
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 9 }}>
             <ChoiceChip label="It started today" selected={todayPeriod?.kind === 'period-start'} onPress={() => saveCycleDay(today, 'period-start', 'medium')} />
@@ -75,16 +97,24 @@ export default function HomeScreen() {
         </Card>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+          <Link href="/care-request" asChild>
+            <Pressable style={({ pressed }) => ({ flexGrow: 1, flexBasis: 250, minHeight: 136, backgroundColor: colors.coralSoft, borderRadius: radii.medium, padding: 18, gap: 8, opacity: pressed ? 0.8 : 1 })}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><GardenGlyph name="care" color={colors.coral} size={30} /><PremiumBadge /></View>
+              <Text style={{ color: colors.ink, fontFamily: fonts.display, fontSize: 20 }}>Ask my grown-up</Text>
+              <Body muted>Send a private, structured garden note for supplies or support.</Body>
+            </Pressable>
+          </Link>
           <Link href="/ask-bloom" asChild>
             <Pressable style={({ pressed }) => ({ flexGrow: 1, flexBasis: 250, minHeight: 126, backgroundColor: colors.butterSoft, borderRadius: radii.medium, padding: 18, gap: 8, opacity: pressed ? 0.8 : 1 })}>
               <PremiumBadge />
-              <Text style={{ color: colors.ink, fontFamily: fonts.display, fontSize: 20 }}>Ask Glitter 💬</Text>
+              <GardenGlyph name="learn" size={26} />
+              <Text style={{ color: colors.ink, fontFamily: fonts.display, fontSize: 20 }}>Ask Glitter</Text>
               <Body muted>{premium ? 'Ask a private, age-appropriate question.' : 'Preview safe answers and Plus support.'}</Body>
             </Pressable>
           </Link>
           <Link href="/self-care" asChild>
             <Pressable style={({ pressed }) => ({ flexGrow: 1, flexBasis: 250, minHeight: 126, backgroundColor: colors.aquaSoft, borderRadius: radii.medium, padding: 18, gap: 8, opacity: pressed ? 0.8 : 1 })}>
-              <Text style={{ fontSize: 25 }}>🧘🏽‍♀️</Text>
+              <GardenGlyph name="calm" color={colors.success} size={26} />
               <Text style={{ color: colors.ink, fontFamily: fonts.display, fontSize: 20 }}>Feel-better studio</Text>
               <Body muted>Breathing, stretches, and school-day calm.</Body>
             </Pressable>

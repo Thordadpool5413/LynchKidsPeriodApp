@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { config } from '../config';
 
 /**
@@ -127,4 +127,12 @@ export function decryptField<T>(value: EncryptedField): T {
   } catch (err) {
     throw new DecryptionError(value.keyVersion, err);
   }
+}
+
+export function fingerprint(value: string): string {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+export function randomOpaqueToken(bytes = 32): string {
+  return randomBytes(bytes).toString('base64url');
 }

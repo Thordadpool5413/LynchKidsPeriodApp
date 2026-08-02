@@ -3,8 +3,8 @@ entrypoint = "package.json"
 modules = ["nodejs-20", "postgresql-16"]
 
 [deployment]
-run = "npm run api:start"
-build = "npm run web:export"
+run = "NODE_ENV=production npm run api:production"
+build = "npm ci && npm run web:export"
 
 [[ports]]
 localPort = 3000

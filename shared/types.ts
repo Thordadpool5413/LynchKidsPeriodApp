@@ -94,6 +94,54 @@ export interface ReminderPreference {
   customPhrase?: string;
 }
 
+export type CareRequestItemCode =
+  | 'pads' | 'liners' | 'period-underwear' | 'spare-underwear' | 'wipes' | 'heat-pack' | 'school-kit-refill'
+  | 'water' | 'warm-drink' | 'parent-approved-snack'
+  | 'quiet-time' | 'rest' | 'comfort-item'
+  | 'bathroom-plan' | 'nurse-help' | 'teacher-note'
+  | 'pickup' | 'check-on-me';
+
+export type CareRequestResponseCode = 'got-it' | 'help-soon' | 'lets-talk' | 'not-right-now';
+export type CareRequestStatus = 'open' | 'acknowledged' | 'cancelled' | 'expired';
+
+export interface CareRequest {
+  id: string;
+  childProfileId: string;
+  items: CareRequestItemCode[];
+  note?: string;
+  urgentSafety?: boolean;
+  status: CareRequestStatus;
+  responseCode?: CareRequestResponseCode;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string;
+}
+
+export interface ParentReminderPreference {
+  enabled: boolean;
+  timezone: string;
+  quietHoursStart: number;
+  quietHoursEnd: number;
+  leadDays: number[];
+  phraseCode: 'garden-moment' | 'little-kit';
+  consentedAt?: string;
+}
+
+export interface DeviceRegistration {
+  id: string;
+  ownerRole: 'parent' | 'child';
+  platform: 'ios' | 'android';
+  enabled: boolean;
+  lastSeenAt: string;
+}
+
+export interface CycleForecast {
+  estimatedDate: ISODate;
+  confidence: 'low' | 'medium' | 'high';
+  sourceRevision: string;
+  calculatedAt: string;
+}
+
 export interface AchievementProgress {
   id: string;
   code: string;

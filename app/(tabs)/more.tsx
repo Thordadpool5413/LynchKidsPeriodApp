@@ -2,10 +2,13 @@ import React from 'react';
 import { Alert, Pressable, Share, Switch, Text, View } from 'react-native';
 import { Link } from 'expo-router';
 import { hasPlusAccess } from '@shared/entitlements';
+import { predictNextPeriod } from '@shared/cycle';
 import { useAppStore } from '@/store/app-store';
-import { updateDailyReminder } from '@/services/reminders';
+import { updateForecastReminder } from '@/services/reminders';
+import { todayISO } from '@/utils/date';
 import { Body, Card, Divider, Heading, Page, PremiumBadge, SecondaryButton } from '@/components/ui';
 import { colors, fonts } from '@/theme';
+import { GardenGlyph } from '@/components/garden-glyph';
 
 function SettingRow({ title, body, control }: { title: string; body: string; control: React.ReactNode }) {
   return (
@@ -22,22 +25,26 @@ function SettingRow({ title, body, control }: { title: string; body: string; con
 export default function MoreScreen() {
   const { data, setCloudSync, setReducedMotion, setReminder, resetAllData, exportData } = useAppStore();
   const premium = hasPlusAccess(data.entitlement);
+  const prediction = predictNextPeriod(data.cycleEvents, todayISO());
   return (
     <Page>
       <Link href="/plus" asChild>
-        <Pressable><Card tone="lavender"><PremiumBadge /><Heading size={23}>{premium ? 'Your Plus garden is growing' : 'Meet Glitter Plus'}</Heading><Body>{premium ? 'Premium preview is active on this device.' : 'More guidance, activities, insights, themes, and grown-up support.'}</Body><Text style={{ color: colors.lavender, fontFamily: fonts.bodyBold }}>{premium ? 'View membership →' : 'See what is included →'}</Text></Card></Pressable>
+        <Pressable><Card tone="lavender"><PremiumBadge /><Heading size={23}>{premium ? 'Your Plus garden is growing' : 'Meet Glitter Plus'}</Heading><Body>{premium ? 'Verified Plus access is active.' : 'More guidance, activities, insights, themes, and grown-up support.'}</Body><Text style={{ color: colors.lavender, fontFamily: fonts.bodyBold }}>{premium ? 'View membership →' : 'See what is included →'}</Text></Card></Pressable>
       </Link>
 
       <Link href="/parent" asChild>
-        <Pressable><Card tone="aqua"><Heading size={21}>Grown-up space</Heading><Body>Consent, linked tracking, support summaries, and subscription management live behind an adult gate.</Body><Text style={{ color: colors.success, fontFamily: fonts.bodyBold }}>Open grown-up space →</Text></Card></Pressable>
+        <Pressable><Card tone="aqua"><GardenGlyph name="lock" color={colors.success} size={28} /><Heading size={21}>Grown-up space</Heading><Body>Consent, linked tracking, support summaries, and subscription management require a verified parent sign-in.</Body><Text style={{ color: colors.success, fontFamily: fonts.bodyBold }}>Open grown-up space →</Text></Card></Pressable>
       </Link>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+        <Link href="/activities" asChild>
+          <Pressable style={{ flexGrow: 1, flexBasis: 240 }}><Card tone="lavender"><Heading size={20}>Garden activities</Heading><Body muted>Build, match, breathe, and learn without streaks or scores.</Body></Card></Pressable>
+        </Link>
         <Link href="/achievements" asChild>
-          <Pressable style={{ flexGrow: 1, flexBasis: 240 }}><Card tone="butter"><Heading size={20}>Sticker garden 🏵️</Heading><Body muted>See the kind things you have practiced.</Body></Card></Pressable>
+          <Pressable style={{ flexGrow: 1, flexBasis: 240 }}><Card tone="butter"><GardenGlyph name="flower" size={28} /><Heading size={20}>Sticker garden</Heading><Body muted>See the kind things you have practiced.</Body></Card></Pressable>
         </Link>
         <Link href="/school-kit" asChild>
-          <Pressable style={{ flexGrow: 1, flexBasis: 240 }}><Card tone="aqua"><Heading size={20}>School kit 🎒</Heading><Body muted>Pack a tiny kit and practice what to say.</Body></Card></Pressable>
+          <Pressable style={{ flexGrow: 1, flexBasis: 240 }}><Card tone="aqua"><GardenGlyph name="care" color={colors.success} size={28} /><Heading size={20}>School kit</Heading><Body muted>Pack a tiny kit and practice what to say.</Body></Card></Pressable>
         </Link>
       </View>
 
@@ -45,13 +52,14 @@ export default function MoreScreen() {
         <Heading size={21}>Privacy and comfort</Heading>
         <SettingRow title="Little-kit reminder" body="Uses discreet words and never mentions a period on the lock screen." control={<Switch value={data.reminder.enabled} onValueChange={async (enabled) => {
           const next = { ...data.reminder, enabled };
-          const result = await updateDailyReminder(next);
+          const result = await updateForecastReminder(next, prediction.nextStart);
           if (result === 'denied') Alert.alert('Notifications are off', 'You can allow Glitter reminders in device Settings.');
           if (result === 'unsupported' && enabled) Alert.alert('Use your device app', 'Scheduled reminders are available in the iPhone and iPad app.');
-          setReminder(result === 'denied' || result === 'unsupported' ? { ...next, enabled: false } : next);
+          if (result === 'not-enough-data' && enabled) Alert.alert('Track a little more first', 'Glitter needs an upcoming estimate before it can place a reminder on the right day.');
+          setReminder(result === 'denied' || result === 'unsupported' || result === 'not-enough-data' ? { ...next, enabled: false } : next);
         }} trackColor={{ true: colors.coral, false: colors.line }} />} />
         <Divider />
-        <SettingRow title="Cloud sharing" body="Prototype toggle only. Production requires verified grown-up consent." control={<Switch value={data.profile.cloudSyncEnabled} onValueChange={setCloudSync} trackColor={{ true: colors.aqua, false: colors.line }} />} />
+        <SettingRow title="Cloud sharing" body={__DEV__ ? 'Developer preview. Production is controlled by verified grown-up consent and device linking.' : 'Controlled by verified grown-up consent and device linking in the grown-up space.'} control={<Switch disabled={!__DEV__} value={data.profile.cloudSyncEnabled} onValueChange={setCloudSync} trackColor={{ true: colors.aqua, false: colors.line }} />} />
         <Divider />
         <SettingRow title="Reduce sparkle motion" body="Keep the colors while stopping floating animation." control={<Switch value={data.reducedMotion} onValueChange={setReducedMotion} trackColor={{ true: colors.lavender, false: colors.line }} />} />
       </Card>

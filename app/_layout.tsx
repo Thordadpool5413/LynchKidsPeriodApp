@@ -19,6 +19,9 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="plus" options={{ title: 'Glitter Plus', presentation: 'modal' }} />
         <Stack.Screen name="ask-bloom" options={{ title: 'Ask Glitter' }} />
+        <Stack.Screen name="care-request" options={{ title: 'Ask my grown-up', presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.85, 1] }} />
+        <Stack.Screen name="calendar-day" options={{ title: 'Edit a day', presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.75, 1] }} />
+        <Stack.Screen name="activities" options={{ title: 'Garden activities' }} />
         <Stack.Screen name="self-care" options={{ title: 'Self-Care Studio' }} />
         <Stack.Screen name="achievements" options={{ title: 'Sticker garden' }} />
         <Stack.Screen name="school-kit" options={{ title: 'School confidence kit' }} />

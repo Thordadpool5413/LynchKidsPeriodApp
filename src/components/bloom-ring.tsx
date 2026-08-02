@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Text, View } from 'react-native';
 import type { CyclePrediction } from '@shared/cycle';
 import { colors, fonts, radii } from '@/theme';
+import { GardenGlyph } from './garden-glyph';
 
 export function BloomRing({ prediction, reducedMotion }: { prediction: CyclePrediction; reducedMotion: boolean }) {
   const float = useRef(new Animated.Value(0)).current;
@@ -20,15 +21,15 @@ export function BloomRing({ prediction, reducedMotion }: { prediction: CyclePred
   const label = prediction.daysUntil === undefined ? 'days tracked' : prediction.daysUntil === 0 ? 'around today' : 'days to bloom';
 
   return (
-    <View style={{ alignItems: 'center', gap: 14 }}>
-      <Animated.View style={{ transform: [{ translateY: float }] }}>
+    <View accessible accessibilityLabel={`${center} ${label}. ${prediction.message}`} style={{ alignItems: 'center', gap: 14 }}>
+      <Animated.View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ transform: [{ translateY: float }] }}>
         <View style={{ width: 188, height: 188, alignItems: 'center', justifyContent: 'center' }}>
-          {['🌸', '✦', '🌼', '✧', '🌷', '✦'].map((symbol, index) => {
+          {[0, 1, 2, 3, 4, 5].map((index) => {
             const angle = (Math.PI * 2 * index) / 6;
             return (
-              <Text key={`${symbol}-${index}`} style={{ position: 'absolute', fontSize: index % 2 ? 18 : 24, transform: [{ translateX: Math.cos(angle) * 80 }, { translateY: Math.sin(angle) * 80 }] }}>
-                {symbol}
-              </Text>
+              <View key={index} style={{ position: 'absolute', transform: [{ translateX: Math.cos(angle) * 80 }, { translateY: Math.sin(angle) * 80 }, { rotate: index % 2 ? '45deg' : '0deg' }] }}>
+                {index % 2 ? <View style={{ width: 9, height: 9, backgroundColor: colors.lavender }} /> : <GardenGlyph name="flower" color={index === 2 ? colors.coral : colors.success} size={24} />}
+              </View>
             );
           })}
           <View style={{ width: 142, height: 142, borderRadius: radii.pill, borderWidth: 10, borderColor: colors.lavenderSoft, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 30px rgba(105, 75, 153, 0.18)' }}>

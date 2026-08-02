@@ -17,4 +17,5 @@ jobs:
       - run: npm run check
       - run: npx expo install --check
       - run: npx expo-doctor
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run web:export
