@@ -7,6 +7,7 @@ server/app.test.ts
   s_39b17da45b28ef::t_980cf98c26a38f 87-94,226-242
   s_39b17da45b28ef::t_6127f3f6ab5bdf 98-99
   s_39b17da45b28ef::t_551219b80c11b5 243
+  s_39b17da45b28ef::t_3ee307c85b414b 4
 src/services/reminders.ts
   s_39b17da45b28ef::t_48f15126602c40 4,10,13,21,26,29
   s_39b17da45b28ef::t_909975b26e15fe 3,24-25
@@ -44,6 +45,7 @@ server/db/schema.ts
   s_39b17da45b28ef::t_e55ba585fe2f62 179
 server/services/email.ts
   s_39b17da45b28ef::t_6f5da9c0b78c99 1-3,21-23,38
+  s_39b17da45b28ef::t_6beef7c3d462f8 4-20,24-37
 shared/types.ts
   s_39b17da45b28ef::t_06a1d8afe15a49 112
   s_39b17da45b28ef::t_2b295f8626ad4e 97-111,113-144
@@ -80,6 +82,8 @@ server/config.ts
   s_39b17da45b28ef::t_1e94992904f905 15
   s_39b17da45b28ef::t_0f671e81e6bf00 18,49
   s_39b17da45b28ef::t_0b2bdadf09b069 14,16-17,19
+  s_39b17da45b28ef::t_6beef7c3d462f8 46
+  s_39b17da45b28ef::t_36db36a9d8f21f 50-51
 app/calendar-day.tsx
   s_39b17da45b28ef::t_61d9e59fa9708d 1-30
 README.md
@@ -92,6 +96,7 @@ app/parent.tsx
   s_39b17da45b28ef::t_521ac4d65ee5e8 9,22,75
   s_39b17da45b28ef::t_d897f109f9ae7e 81
   s_39b17da45b28ef::t_a65f1eb8bbfbb5 1-8,12-13,16-21,23-28,36-43,45-74,76-78,80,82-85
+  s_39b17da45b28ef::t_630b560d8405f9 14-15,29-34,44
 app/_layout.tsx
   s_39b17da45b28ef::t_61d9e59fa9708d 23
   s_39b17da45b28ef::t_9d22aedb48bb7e 22
@@ -109,6 +114,7 @@ src/services/api-client.ts
   s_39b17da45b28ef::t_0f671e81e6bf00 23
   s_39b17da45b28ef::t_521ac4d65ee5e8 40
   s_39b17da45b28ef::t_dc221eec09ed3b 32
+  s_39b17da45b28ef::t_2e1c82daceece1 21
 app/(tabs)/learn.tsx
   s_39b17da45b28ef::t_814097caaa4673 26
 app/index.tsx
@@ -148,8 +154,15 @@ server/app.ts
   s_39b17da45b28ef::t_da805368b330a9 541-556,558-563,567-570,573-574,581-612,614
   s_39b17da45b28ef::t_dfd14efc77f519 280
   s_39b17da45b28ef::t_64bd75ae6aedee 540
+  s_39b17da45b28ef::t_2e1c82daceece1 239-240,249-250,258-259
+  s_39b17da45b28ef::t_fa67b175d96f9d 261
+  s_39b17da45b28ef::t_500f4d2a7ecffe 175,260
 app/(tabs)/calendar.tsx
   s_39b17da45b28ef::t_61d9e59fa9708d 2-4,8,12,26,68-69
+app/plus.tsx
+  s_39b17da45b28ef::t_ce8f742c103c84 8,66-67,76,91-92,99,118,232-233
+server/db/migrations/0002_dazzling_guardian.sql
+  s_39b17da45b28ef::t_db4acb4b7fb25e 1-143
 ---
 {
   "schema_version": "authorship/3.0.0",
