@@ -129,10 +129,16 @@ app.use(express.json({ limit: '256kb' }));
 
 app.get('/healthz', async (_request, response) => {
   const database = await checkDatabase();
+  const emailDelivery = config.SMTP_URL
+    ? 'smtp'
+    : process.env.REPLIT_CONNECTORS_HOSTNAME
+      ? 'resend-connector'
+      : config.NODE_ENV !== 'production' ? 'console-only' : 'none';
   response.status(config.NODE_ENV === 'production' && !database ? 503 : 200).json({
     ok: config.NODE_ENV !== 'production' || database,
     service: 'glitter-api',
     database,
+    emailDelivery,
     askBloomMode: config.OPENAI_ZDR_APPROVED === 'true' && config.ASK_BLOOM_GENERATIVE_ENABLED === 'true' ? 'generative' : 'curated',
   });
 });

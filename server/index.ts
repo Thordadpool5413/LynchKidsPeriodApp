@@ -22,6 +22,15 @@ async function main() {
     console.log('Database migrations applied.');
   }
 
+  // Log which email delivery path is active so production deployments are easy to verify.
+  if (config.SMTP_URL) {
+    console.log('Email delivery: SMTP (SMTP_URL)');
+  } else if (process.env.REPLIT_CONNECTORS_HOSTNAME) {
+    console.log('Email delivery: Resend connector (REPLIT_CONNECTORS_HOSTNAME)');
+  } else {
+    console.log('Email delivery: none (dev/test only — magic links logged to console)');
+  }
+
   app.listen(config.PORT, '0.0.0.0', () => {
     console.log(`Glitter API listening on http://0.0.0.0:${config.PORT}`);
   });
