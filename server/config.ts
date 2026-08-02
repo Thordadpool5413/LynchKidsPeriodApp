@@ -21,8 +21,11 @@ const schema = z.object({
   ASK_BLOOM_GENERATIVE_ENABLED: z.enum(['true', 'false']).default('false'),
   /** nodemailer-compatible transport URL, e.g. smtp://user:pass@host:587  */
   SMTP_URL: z.string().url().optional(),
-  /** Reply-to address shown on magic-link emails */
-  EMAIL_FROM: z.string().email().default('noreply@glitter.app'),
+  /** Reply-to address shown on magic-link emails.
+   *  Must be a verified sender in your email provider.
+   *  Resend's built-in test sender (onboarding@resend.dev) works without domain
+   *  verification and is the recommended default until a custom domain is set up. */
+  EMAIL_FROM: z.string().email().default('onboarding@resend.dev'),
 });
 
 export const config = schema.parse(process.env);
