@@ -165,12 +165,38 @@ app.post('/v1/auth/request-link', rateLimit(5, 15 * 60_000), async (request, res
       console.error('[glitter-api] Failed to send magic-link email:', err instanceof Error ? err.message : err);
       return response.status(503).json({ error: 'Could not send sign-in email. Please try again.' });
     }
+  } else if (process.env.REPLIT_CONNECTORS_HOSTNAME) {
+    // Resend via Replit Connectors proxy — no manual API key required.
+    try {
+      const { ReplitConnectors } = await import('@replit/connectors-sdk');
+      const connectors = new ReplitConnectors();
+      // Pass the payload as a plain object so the SDK serialises it to JSON and
+      // sets Content-Type: application/json automatically.
+      const res = await connectors.proxy('resend', '/emails', {
+        method: 'POST',
+        body: {
+          from: config.EMAIL_FROM,
+          to: email,
+          subject: 'Sign in to Glitter',
+          text: `Tap the link below to sign in to your Glitter parent account.\n\nThis link expires in 15 minutes and can only be used once.\n\n${link}\n\nIf you did not request this, you can safely ignore this email.`,
+          html: `<p>Tap the link below to sign in to your Glitter parent account.</p><p>This link expires in 15 minutes and can only be used once.</p><p><a href="${link}">Sign in to Glitter</a></p><p>If you did not request this, you can safely ignore this email.</p>`,
+        },
+      });
+      if (!res.ok) {
+        const resBody = await res.text().catch(() => '');
+        console.error('[glitter-api] Resend connector error:', res.status, resBody);
+        return response.status(503).json({ error: 'Could not send sign-in email. Please try again.' });
+      }
+    } catch (err) {
+      console.error('[glitter-api] Failed to send magic-link email via Resend:', err instanceof Error ? err.message : err);
+      return response.status(503).json({ error: 'Could not send sign-in email. Please try again.' });
+    }
   } else if (config.NODE_ENV !== 'production') {
-    // No SMTP configured — log the link only in dev/test so developers can follow it manually.
-    // This branch is unreachable in production because config.ts requires SMTP_URL there.
+    // No email transport configured — log the link only in dev/test so developers can follow it manually.
+    // This branch is unreachable in production because config.ts requires email delivery there.
     console.info(`[glitter-api] Magic link for ${email}: ${link}`);
   } else {
-    // Production with no SMTP: refuse the request rather than silently failing to deliver.
+    // Production with no email transport: refuse the request rather than silently failing to deliver.
     return response.status(503).json({ error: 'Email delivery is not configured. Contact support.' });
   }
 

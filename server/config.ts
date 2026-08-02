@@ -28,7 +28,11 @@ const schema = z.object({
 export const config = schema.parse(process.env);
 
 if (config.NODE_ENV === 'production') {
-  const required = ['DATABASE_URL', 'SESSION_SECRET', 'FIELD_ENCRYPTION_KEY', 'SMTP_URL'] as const;
+  const required = ['DATABASE_URL', 'SESSION_SECRET', 'FIELD_ENCRYPTION_KEY'] as const;
   const missing = required.filter((key) => !config[key]);
   if (missing.length) throw new Error(`Missing production secrets: ${missing.join(', ')}`);
+  // Email delivery must be configured via SMTP_URL or the Resend Replit connector.
+  if (!config.SMTP_URL && !process.env.REPLIT_CONNECTORS_HOSTNAME) {
+    throw new Error('Missing production email delivery: set SMTP_URL or connect the Resend integration.');
+  }
 }

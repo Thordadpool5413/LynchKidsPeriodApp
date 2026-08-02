@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 import { app, serveContent } from './app';
@@ -84,9 +84,65 @@ describe('Glitter API', () => {
   });
 
   it('does not reveal whether an email account exists', async () => {
-    const response = await request(app).post('/v1/auth/request-link').send({ email: 'parent@example.com' });
-    expect(response.status).toBe(202);
-    expect(response.body.accepted).toBe(true);
+    // Ensure no real transport is attempted in the test environment so the
+    // server falls through to the dev-console log path and always returns 202.
+    const savedHostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+    const savedSmtp = process.env.SMTP_URL;
+    delete process.env.REPLIT_CONNECTORS_HOSTNAME;
+    delete process.env.SMTP_URL;
+    try {
+      const response = await request(app).post('/v1/auth/request-link').send({ email: 'parent@example.com' });
+      expect(response.status).toBe(202);
+      expect(response.body.accepted).toBe(true);
+    } finally {
+      if (savedHostname !== undefined) process.env.REPLIT_CONNECTORS_HOSTNAME = savedHostname;
+      if (savedSmtp !== undefined) process.env.SMTP_URL = savedSmtp;
+    }
+  });
+
+  it('sends sign-in email via Resend connector when REPLIT_CONNECTORS_HOSTNAME is set', async () => {
+    // Capture the body and headers passed to the connector proxy.
+    let capturedBody: unknown;
+    const mockProxy = vi.fn(async (_connector: string, _path: string, opts?: { body?: unknown }) => {
+      capturedBody = opts?.body;
+      return new globalThis.Response(JSON.stringify({ id: 'test-email-id' }), { status: 200 });
+    });
+    vi.doMock('@replit/connectors-sdk', () => ({
+      ReplitConnectors: class {
+        proxy = mockProxy;
+      },
+    }));
+
+    process.env.REPLIT_CONNECTORS_HOSTNAME = 'connectors.replit.com';
+    try {
+      const response = await request(app).post('/v1/auth/request-link').send({ email: 'parent@example.com' });
+      expect(response.status).toBe(202);
+      expect(response.body.accepted).toBe(true);
+    } finally {
+      delete process.env.REPLIT_CONNECTORS_HOSTNAME;
+      vi.doUnmock('@replit/connectors-sdk');
+    }
+  });
+
+  it('returns 503 when the Resend connector reports a delivery error', async () => {
+    const mockProxy = vi.fn(async () =>
+      new globalThis.Response(JSON.stringify({ message: 'domain not verified' }), { status: 422 })
+    );
+    vi.doMock('@replit/connectors-sdk', () => ({
+      ReplitConnectors: class {
+        proxy = mockProxy;
+      },
+    }));
+
+    process.env.REPLIT_CONNECTORS_HOSTNAME = 'connectors.replit.com';
+    try {
+      const response = await request(app).post('/v1/auth/request-link').send({ email: 'parent@example.com' });
+      expect(response.status).toBe(503);
+      expect(response.body.error).toMatch(/sign-in email/i);
+    } finally {
+      delete process.env.REPLIT_CONNECTORS_HOSTNAME;
+      vi.doUnmock('@replit/connectors-sdk');
+    }
   });
 
   it('returns 503 and never logs a token when acting as production without SMTP configured', async () => {
