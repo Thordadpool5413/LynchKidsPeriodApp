@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import { app, serveContent } from './app';
+import { app, resolveStaticPage, serveContent } from './app';
 import { filterPublished } from '../shared/content';
 import type { ContentItem } from '../shared/types';
 import { PENDING_CONTENT } from './pending-content';
+import path from 'node:path';
 
 // Synthetic fixtures for non-vacuous mixed-catalog tests.
 const reviewedFixture: ContentItem = {
@@ -81,6 +82,19 @@ describe('Glitter API', () => {
         expect(item.reviewerStatus).toBe('clinician-reviewed');
       }
     }
+  });
+
+  it('keeps API responses locked down while allowing the website to load its own bundle', async () => {
+    const api = await request(app).get('/v1/content');
+    const website = await request(app).get('/').set('Accept', 'text/html');
+    expect(api.headers['content-security-policy']).toContain("default-src 'none'");
+    expect(website.headers['content-security-policy']).toContain("script-src 'self'");
+    expect(website.headers['content-security-policy']).not.toContain("default-src 'none'");
+  });
+
+  it('maps clean website routes to their exported static documents', () => {
+    expect(resolveStaticPage(path.join('tmp', 'dist'), '/care-request')).toBe(path.join('tmp', 'dist', 'care-request.html'));
+    expect(resolveStaticPage(path.join('tmp', 'dist'), '/')).toBe(path.join('tmp', 'dist', 'index.html'));
   });
 
   it('does not reveal whether an email account exists', async () => {
@@ -207,6 +221,24 @@ describe('Glitter API', () => {
   it('requires authentication for Ask Glitter', async () => {
     const response = await request(app).post('/v1/ask-bloom').send({ question: 'Are cramps normal?' });
     expect(response.status).toBe(401);
+  });
+
+  it('requires a child session for Care Requests', async () => {
+    const response = await request(app).post('/v1/care-requests').send({ clientRequestId: 'request-12345', items: ['pads'] });
+    expect(response.status).toBe(401);
+  });
+
+  it('does not trust a client premium flag', async () => {
+    const session = await request(app).post('/v1/dev/session').send({ role: 'parent' });
+    const response = await request(app).get('/v1/entitlement').set('Authorization', `Bearer ${session.body.token}`).set('x-premium', 'true');
+    expect(response.status).toBe(200);
+    expect(response.body.entitlement.status).toBe('free');
+  });
+
+  it('rejects malformed device link codes without revealing account details', async () => {
+    const response = await request(app).post('/v1/child/link').send({ code: '12' });
+    expect(response.status).toBe(400);
+    expect(response.body.error).not.toMatch(/email|child name/i);
   });
 
   it('returns fixed urgent guidance instead of a generated answer', async () => {

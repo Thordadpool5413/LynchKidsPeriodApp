@@ -2,7 +2,11 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import { config } from '../config';
 
-export interface SessionClaims { subject: string; role: 'parent' | 'child'; childId?: string; expiresAt: number }
+import { and, eq, gt, isNull } from 'drizzle-orm';
+import { db } from '../db/client';
+import { sessionRecords } from '../db/schema';
+
+export interface SessionClaims { subject: string; role: 'parent' | 'child'; childId?: string; sessionId?: string; expiresAt: number }
 
 function secret(): string {
   return config.SESSION_SECRET ?? 'development-only-secret-do-not-use-000000';
@@ -91,10 +95,20 @@ export function verifySessionToken(token: string): SessionClaims | null {
 declare global { namespace Express { interface Request { session?: SessionClaims } } }
 
 export function requireSession(role?: SessionClaims['role']) {
-  return (request: Request, response: Response, next: NextFunction) => {
+  return async (request: Request, response: Response, next: NextFunction) => {
     const token = request.headers.authorization?.replace(/^Bearer\s+/i, '');
     const claims = token ? verifySessionToken(token) : null;
     if (!claims || (role && claims.role !== role)) return response.status(401).json({ error: 'Authentication required' });
+    if (db && config.NODE_ENV === 'production') {
+      if (!claims.sessionId) return response.status(401).json({ error: 'Session is no longer valid' });
+      const active = await db.select({ id: sessionRecords.id }).from(sessionRecords).where(and(
+        eq(sessionRecords.id, claims.sessionId),
+        isNull(sessionRecords.revokedAt),
+        gt(sessionRecords.expiresAt, new Date()),
+      )).limit(1);
+      if (!active.length) return response.status(401).json({ error: 'Session is no longer valid' });
+      await db.update(sessionRecords).set({ lastSeenAt: new Date() }).where(eq(sessionRecords.id, claims.sessionId));
+    }
     request.session = claims;
     next();
   };

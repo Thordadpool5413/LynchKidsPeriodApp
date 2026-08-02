@@ -5,8 +5,13 @@
     "scheme": "glitter",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/glitter-app-icon.png",
+    "splash": {
+      "image": "./assets/glitter-app-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#D9F5EE"
+    },
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lynchkids.glitter",
@@ -18,7 +23,8 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/glitter-app-icon.png"
     },
     "plugins": [
       "expo-router",
@@ -37,10 +43,12 @@
           "enableFTS": true,
           "useSQLCipher": true
         }
-      ]
+      ],
+      "expo-image"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "extra": {
       "apiUrl": "http://localhost:8787",

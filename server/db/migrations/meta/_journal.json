@@ -15,6 +15,13 @@
       "when": 1754085600000,
       "tag": "0001_add_trial_ends_at",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785691440984,
+      "tag": "0002_dazzling_guardian",
+      "breakpoints": true
     }
   ]
 }
