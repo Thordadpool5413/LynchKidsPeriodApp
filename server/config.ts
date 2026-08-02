@@ -23,8 +23,9 @@ const schema = z.object({
   SMTP_URL: z.string().url().optional(),
   /** Reply-to address shown on magic-link emails.
    *  Must be a verified sender in your email provider.
-   *  Resend's built-in test sender (onboarding@resend.dev) works without domain
-   *  verification and is the recommended default until a custom domain is set up. */
+   *  Production: set EMAIL_FROM=noreply@mail.glitter.app (requires mail.glitter.app to be
+   *  DNS-verified in the Resend dashboard at resend.com/domains).
+   *  Development fallback: onboarding@resend.dev works without domain verification. */
   EMAIL_FROM: z.string().email().default('onboarding@resend.dev'),
 });
 

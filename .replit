@@ -72,4 +72,4 @@ timeoutMs = 120000
 [userenv]
 
 [userenv.shared]
-EMAIL_FROM = "onboarding@resend.dev"
+EMAIL_FROM = "noreply@mail.glitter.app"
