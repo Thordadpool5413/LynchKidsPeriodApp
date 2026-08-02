@@ -43,10 +43,9 @@ const schema = z.object({
 export const config = schema.parse(process.env);
 
 if (config.NODE_ENV === 'production') {
-  const required = ['DATABASE_URL', 'SESSION_SECRET', 'FIELD_ENCRYPTION_KEY', 'VPC_PROVIDER_SECRET', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_MONTHLY_PRICE_ID', 'STRIPE_ANNUAL_PRICE_ID', 'EXPO_ACCESS_TOKEN', 'APPLE_ROOT_CA_BASE64', 'APPLE_APP_ID', 'APPLE_MONTHLY_PRODUCT_ID', 'APPLE_ANNUAL_PRODUCT_ID'] as const;
+  const required = ['DATABASE_URL', 'SESSION_SECRET', 'FIELD_ENCRYPTION_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET', 'STRIPE_MONTHLY_PRICE_ID', 'STRIPE_ANNUAL_PRICE_ID'] as const;
   const missing = required.filter((key) => !config[key]);
   if (missing.length) throw new Error(`Missing production secrets: ${missing.join(', ')}`);
-  if (config.VPC_PROVIDER_ENABLED !== 'true') throw new Error('VPC_PROVIDER_ENABLED must be true for production cloud features');
   if (!config.RESEND_API_KEY && !config.SMTP_URL && !process.env.REPLIT_CONNECTORS_HOSTNAME) {
     throw new Error('Missing production email delivery: set RESEND_API_KEY, SMTP_URL, or connect the Resend integration.');
   }
