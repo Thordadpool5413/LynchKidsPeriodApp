@@ -1,0 +1,169 @@
+src/theme.ts
+  s_39b17da45b28ef::t_666f20c219aea3 6,8,10,16
+app/+html.tsx
+  s_39b17da45b28ef::t_4aee9d0ad34ee4 1-6
+server/app.test.ts
+  s_39b17da45b28ef::t_33d859201f1056 8,95-97
+  s_39b17da45b28ef::t_980cf98c26a38f 87-94,226-242
+  s_39b17da45b28ef::t_6127f3f6ab5bdf 98-99
+  s_39b17da45b28ef::t_551219b80c11b5 243
+src/services/reminders.ts
+  s_39b17da45b28ef::t_48f15126602c40 4,10,13,21,26,29
+  s_39b17da45b28ef::t_909975b26e15fe 3,24-25
+package.json
+  s_39b17da45b28ef::t_ab78e56cbdda4a 19,29-42,47-49,51,62,72
+  s_39b17da45b28ef::t_cd20b1b0a671dc 12,20,24
+src/components/bloom-ring.tsx
+  s_39b17da45b28ef::t_9c007fa783e9dc 5,24-25,27,30-32
+server/production-start.ts
+  s_39b17da45b28ef::t_cd20b1b0a671dc 1-27
+src/services/sync-queue.ts
+  s_39b17da45b28ef::t_8b02887f804966 6,20-21,24-37
+shared/sync.test.ts
+  s_39b17da45b28ef::t_2405c93cc7b11a 1-13
+app/care-request.tsx
+  s_39b17da45b28ef::t_d0cc05c4e354d6 27,63,67-68,70,97-99
+  s_39b17da45b28ef::t_d897f109f9ae7e 28
+  s_39b17da45b28ef::t_65601c8aaf68fd 1-26,29-62,64-66,69,71-77,89-96,100,102-103
+  s_39b17da45b28ef::t_c520c0c9e4e093 78-88,101
+src/services/parent-alerts.ts
+  s_39b17da45b28ef::t_521ac4d65ee5e8 1-21
+server/security/auth.ts
+  s_39b17da45b28ef::t_a732aa5e1e33b6 5-9,98,102-111
+server/services/push.ts
+  s_39b17da45b28ef::t_9dc06b78cb410a 3,6,15-16,27-30,69-88
+  s_39b17da45b28ef::t_1da391a360d3df 1
+  s_39b17da45b28ef::t_6f5da9c0b78c99 2,4-5,7-14,17-26,31-68,89
+src/components/garden-glyph.tsx
+  s_39b17da45b28ef::t_666f20c219aea3 1-24
+server/db/schema.ts
+  s_39b17da45b28ef::t_fd79a79afb2216 105
+  s_39b17da45b28ef::t_3b0da5dd5af629 5-7,17-25,36-56,67-96,122-127,129-178
+  s_39b17da45b28ef::t_dc221eec09ed3b 128
+  s_39b17da45b28ef::t_cc9bb057bd022f 97
+  s_39b17da45b28ef::t_e55ba585fe2f62 179
+server/services/email.ts
+  s_39b17da45b28ef::t_6f5da9c0b78c99 1-3,21-23,38
+shared/types.ts
+  s_39b17da45b28ef::t_06a1d8afe15a49 112
+  s_39b17da45b28ef::t_2b295f8626ad4e 97-111,113-144
+server/security/auth.test.ts
+  s_39b17da45b28ef::t_20007647d2b93a 12-14
+  s_39b17da45b28ef::t_980cf98c26a38f 1-11,15-21
+.replit
+  s_39b17da45b28ef::t_cd20b1b0a671dc 6
+  s_39b17da45b28ef::t_ab78e56cbdda4a 7
+shared/sync.ts
+  s_39b17da45b28ef::t_2405c93cc7b11a 1-5
+app/(tabs)/more.tsx
+  s_39b17da45b28ef::t_48f15126602c40 5,7-8,28,55,58-59
+  s_39b17da45b28ef::t_5df622ef07d73e 11,32,36,44,47,62
+  s_39b17da45b28ef::t_97c0bd5a1e1f96 40-42
+app.json
+  s_39b17da45b28ef::t_4aee9d0ad34ee4 8-13,26-27
+  s_39b17da45b28ef::t_ab78e56cbdda4a 46-47,50-51
+app/school-kit.tsx
+  s_39b17da45b28ef::t_814097caaa4673 15
+app/(tabs)/journal.tsx
+  s_39b17da45b28ef::t_91dc9ca12191ad 7,31-32,38,46,55
+  s_39b17da45b28ef::t_c54d8d63c32735 5
+server/services/apple.ts
+  s_39b17da45b28ef::t_e4073ca60dea2b 1-44
+.env.example
+  s_39b17da45b28ef::t_e4073ca60dea2b 16-20
+  s_39b17da45b28ef::t_0b2bdadf09b069 6-9,11
+  s_39b17da45b28ef::t_0f671e81e6bf00 10
+app/(tabs)/_layout.tsx
+  s_39b17da45b28ef::t_238ee13de7b608 4,6,10,18-19,21-25
+server/config.ts
+  s_39b17da45b28ef::t_e4073ca60dea2b 24-28
+  s_39b17da45b28ef::t_1e94992904f905 15
+  s_39b17da45b28ef::t_0f671e81e6bf00 18,49
+  s_39b17da45b28ef::t_0b2bdadf09b069 14,16-17,19
+app/calendar-day.tsx
+  s_39b17da45b28ef::t_61d9e59fa9708d 1-30
+README.md
+  s_39b17da45b28ef::t_a455eed3fdd2f1 48,80
+  s_39b17da45b28ef::t_1304de567a7a6a 13,15,17-19,21,30,41,47,51-52,63-67,73,86,91-93,115-116,118
+  s_39b17da45b28ef::t_578af8420f683d 81
+.github/workflows/ci.yml
+  s_39b17da45b28ef::t_ab78e56cbdda4a 20
+app/parent.tsx
+  s_39b17da45b28ef::t_521ac4d65ee5e8 9,22,75
+  s_39b17da45b28ef::t_d897f109f9ae7e 81
+  s_39b17da45b28ef::t_a65f1eb8bbfbb5 1-8,12-13,16-21,23-28,36-43,45-74,76-78,80,82-85
+app/_layout.tsx
+  s_39b17da45b28ef::t_61d9e59fa9708d 23
+  s_39b17da45b28ef::t_9d22aedb48bb7e 22
+  s_39b17da45b28ef::t_97c0bd5a1e1f96 24
+server/security/crypto.ts
+  s_39b17da45b28ef::t_a732aa5e1e33b6 1,131-138
+src/components/ui.tsx
+  s_39b17da45b28ef::t_814097caaa4673 6,140
+  s_39b17da45b28ef::t_666f20c219aea3 8,16,131,158,161
+app/activities.tsx
+  s_39b17da45b28ef::t_97c0bd5a1e1f96 1-30
+src/services/api-client.ts
+  s_39b17da45b28ef::t_74dfe711fbc3cb 33
+  s_39b17da45b28ef::t_55bdc3c14adbdb 2,20,22,24,31,34-39
+  s_39b17da45b28ef::t_0f671e81e6bf00 23
+  s_39b17da45b28ef::t_521ac4d65ee5e8 40
+  s_39b17da45b28ef::t_dc221eec09ed3b 32
+app/(tabs)/learn.tsx
+  s_39b17da45b28ef::t_814097caaa4673 26
+app/index.tsx
+  s_39b17da45b28ef::t_dcde1039da88c8 3,5,9,13,18,23,39,44,59,73
+src/store/app-store.tsx
+  s_39b17da45b28ef::t_242583ac35befa 188
+  s_39b17da45b28ef::t_20350f785d5cb8 18,23-26,138,146,149-154,162-163,168-173,177-187,189-190,194
+  s_39b17da45b28ef::t_788dbb162d9c7e 81-82,200-203
+app/(tabs)/index.tsx
+  s_39b17da45b28ef::t_9d22aedb48bb7e 12,16-21,78-79,90,100-106,110-111,117
+  s_39b17da45b28ef::t_814097caaa4673 1,13-14,29,36-47,60-65
+server/services/access.ts
+  s_39b17da45b28ef::t_6f5da9c0b78c99 1-43
+src/services/cloud-session.ts
+  s_39b17da45b28ef::t_8b02887f804966 1-26
+server/jobs/send-notifications.ts
+  s_39b17da45b28ef::t_6f5da9c0b78c99 1-11
+server/app.ts
+  s_39b17da45b28ef::t_b2e055903f3366 429-434,437-442,462
+  s_39b17da45b28ef::t_33d859201f1056 33-37,757
+  s_39b17da45b28ef::t_242583ac35befa 435-436
+  s_39b17da45b28ef::t_67439c18270509 756,758-760
+  s_39b17da45b28ef::t_0808c6d4939cc3 466-492,495-512,514-520,522-526,530-531,533-536,539
+  s_39b17da45b28ef::t_9e2e8ca2d6d4b5 6,18-22,24-26,43-46,49,170,194,217,256,262-269,273,276,278
+  s_39b17da45b28ef::t_f8487430274744 426-427,448-449,455-456
+  s_39b17da45b28ef::t_347e77e6cc68dc 270-272,274-275,277,389-393,395
+  s_39b17da45b28ef::t_0f671e81e6bf00 10,348,352-355
+  s_39b17da45b28ef::t_1128449b2cae04 11,15,307-344
+  s_39b17da45b28ef::t_3c6fe133f5560f 288-306,345-347,349-351,356-388,394,396-401,404-409
+  s_39b17da45b28ef::t_2be226709d27ca 402-403,493-494,571-572
+  s_39b17da45b28ef::t_d87b49e0e3b186 279,513,704-721,723-749
+  s_39b17da45b28ef::t_e88382aa711f06 613,722
+  s_39b17da45b28ef::t_9151c1c43bf369 27,662-679
+  s_39b17da45b28ef::t_2405c93cc7b11a 14,428
+  s_39b17da45b28ef::t_74dfe711fbc3cb 564-566,575-580
+  s_39b17da45b28ef::t_dc221eec09ed3b 521,527-529,532,537-538,557
+  s_39b17da45b28ef::t_da805368b330a9 541-556,558-563,567-570,573-574,581-612,614
+  s_39b17da45b28ef::t_dfd14efc77f519 280
+  s_39b17da45b28ef::t_64bd75ae6aedee 540
+app/(tabs)/calendar.tsx
+  s_39b17da45b28ef::t_61d9e59fa9708d 2-4,8,12,26,68-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "23a9254125b1bb50aa9298b08470ff83484b5e61",
+  "prompts": {},
+  "sessions": {
+    "s_39b17da45b28ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb647-6374-7a83-a050-417b87bcd94a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Thordadpool5413 <nick.lynch.coaching@outlook.com>"
+    }
+  }
+}
