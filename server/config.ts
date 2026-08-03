@@ -23,7 +23,7 @@ const schema = z.object({
   STRIPE_ANNUAL_PRICE_ID: z.string().optional(),
   APPLE_ROOT_CA_BASE64: z.string().optional(),
   APPLE_APP_ID: z.coerce.number().int().positive().optional(),
-  APPLE_BUNDLE_ID: z.string().default('com.lynchkids.glitter'),
+  APPLE_BUNDLE_ID: z.string().default('com.lynchkids.avacado'),
   APPLE_MONTHLY_PRODUCT_ID: z.string().optional(),
   APPLE_ANNUAL_PRODUCT_ID: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
@@ -34,7 +34,7 @@ const schema = z.object({
   SMTP_URL: z.string().url().optional(),
   /** Reply-to address shown on magic-link emails.
    *  Must be a verified sender in your email provider.
-   *  Production: set EMAIL_FROM=noreply@mail.glitter.app (requires mail.glitter.app to be
+   *  Production: set EMAIL_FROM=noreply@mail.avacado.app (requires mail.avacado.app to be
    *  DNS-verified in the Resend dashboard at resend.com/domains).
    *  Development fallback: onboarding@resend.dev works without domain verification. */
   EMAIL_FROM: z.string().email().default('onboarding@resend.dev'),

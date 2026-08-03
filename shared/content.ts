@@ -24,7 +24,7 @@ export function filterPublished(catalog: ContentItem[]): ContentItem[] {
 export const PUBLISHED_CONTENT: ContentItem[] = filterPublished(EDUCATION_CONTENT);
 
 export const ASK_BLOOM_TILES = [
-  'Is brown period blood normal?',
+  'Is brown Glitter (period) blood normal?',
   'What should I keep in my school kit?',
   'What can I do when I have cramps?',
   'How do I tell a teacher I need the bathroom?',

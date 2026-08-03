@@ -1,30 +1,30 @@
 {
   "expo": {
-    "name": "Glitter",
-    "slug": "glitter-period-app",
-    "scheme": "glitter",
+    "name": "AvaCado",
+    "slug": "avacado-period-app",
+    "scheme": "avacado",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/glitter-app-icon.png",
+    "icon": "./assets/brand/avacado-app-icon.png",
     "splash": {
-      "image": "./assets/glitter-app-icon.png",
+      "image": "./assets/brand/avacado-app-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#D9F5EE"
+      "backgroundColor": "#F7F3D7"
     },
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lynchkids.glitter",
+      "bundleIdentifier": "com.lynchkids.avacado",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSUserNotificationsUsageDescription": "Glitter can send private reminders using words you choose."
+        "NSUserNotificationsUsageDescription": "AvaCado can send private Glitter reminders using words you choose."
       }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/glitter-app-icon.png"
+      "favicon": "./assets/brand/avacado-app-icon.png"
     },
     "plugins": [
       "expo-router",
@@ -51,10 +51,12 @@
       "reactCompiler": true
     },
     "extra": {
-      "apiUrl": "http://localhost:8787",
+      "apiUrl": "https://lynch-kids-period-app.replit.app",
+      "router": {},
       "eas": {
-        "projectId": "SET_WITH_EAS_INIT"
+        "projectId": "89501886-8bbd-4516-9eaa-cb3efe891ffc"
       }
-    }
+    },
+    "owner": "thordadpool"
   }
 }

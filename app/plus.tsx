@@ -32,7 +32,7 @@ function formatDate(iso: string | undefined): string {
 }
 
 const features = [
-  ['💬', 'Ask Glitter', 'Private, age-appropriate answers from reviewed Glitter lessons.'],
+  ['💬', 'Ask Ava', 'Private, age-appropriate answers from reviewed AvaCado lessons.'],
   ['🧘🏽‍♀️', 'Self-Care Studio', 'Breathing, gentle movement, comfort, and school-day calm.'],
   ['📊', 'Pattern insights', 'Notice repeating feelings and symptoms without diagnosis.'],
   ['🎒', 'School toolkit', 'Kit lists, private plans, and words to use when asking for help.'],
@@ -212,7 +212,7 @@ export default function PlusScreen() {
             </>
           )
         ) : premium ? (
-          <PrimaryButton label="Glitter Plus active ✓" onPress={() => undefined} disabled />
+          <PrimaryButton label="AvaCado Plus active ✓" onPress={() => undefined} disabled />
         ) : !hasSubscriptionRecord ? (
           <View style={{ gap: 10 }}>
             <PrimaryButton

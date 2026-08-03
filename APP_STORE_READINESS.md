@@ -4,7 +4,7 @@ Do not submit until every required item is checked and supported by evidence.
 
 ## Product and content
 
-- [ ] Pediatric/adolescent-health clinician approves every education item, symptom threshold, activity, and Ask Glitter escalation.
+- [ ] Pediatric/adolescent-health clinician approves every education item, symptom threshold, activity, and Ask Ava escalation.
 - [ ] Supervised usability sessions completed with children in the target range and their parents.
 - [ ] No fertility, pregnancy, advertising, public community, direct messaging, or punitive streak functionality is present.
 - [ ] Monthly Plus content calendar has at least three approved releases queued.

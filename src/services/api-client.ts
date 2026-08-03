@@ -6,13 +6,13 @@ const apiUrl = (process.env.EXPO_OS === 'web'
   : process.env.EXPO_PUBLIC_API_URL ?? Constants.expoConfig?.extra?.apiUrl ?? '').replace(/\/$/, '');
 
 async function request<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
-  if (!apiUrl && process.env.EXPO_OS !== 'web') throw new Error('Glitter cloud services are not configured. Your local data is unchanged.');
+  if (!apiUrl && process.env.EXPO_OS !== 'web') throw new Error('AvaCado cloud services are not configured. Your local data is unchanged.');
   const response = await fetch(`${apiUrl}${path}`, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init.headers },
   });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(typeof body.error === 'string' ? body.error : 'Glitter could not complete that request.');
+  if (!response.ok) throw new Error(typeof body.error === 'string' ? body.error : 'AvaCado could not complete that request.');
   return body as T;
 }
 

@@ -18,7 +18,7 @@ export function BloomRing({ prediction, reducedMotion }: { prediction: CyclePred
   }, [float, reducedMotion]);
 
   const center = prediction.daysUntil === undefined ? '—' : Math.max(prediction.daysUntil, 0).toString();
-  const label = prediction.daysUntil === undefined ? 'days tracked' : prediction.daysUntil === 0 ? 'around today' : 'days to bloom';
+  const label = prediction.daysUntil === undefined ? 'starts tracked' : prediction.daysUntil === 0 ? 'around today' : 'days to Glitter';
 
   return (
     <View accessible accessibilityLabel={`${center} ${label}. ${prediction.message}`} style={{ alignItems: 'center', gap: 14 }}>
@@ -40,7 +40,7 @@ export function BloomRing({ prediction, reducedMotion }: { prediction: CyclePred
       </Animated.View>
       <Text selectable style={{ maxWidth: 330, color: colors.ink, fontFamily: fonts.bodyBold, fontSize: 17, lineHeight: 24, textAlign: 'center' }}>{prediction.message}</Text>
       <Text selectable style={{ color: colors.inkMuted, fontFamily: fonts.body, fontSize: 12, textAlign: 'center' }}>
-        {prediction.confidence === 'pattern-based' ? 'Based on your recent pattern—not a promise.' : 'Early estimate. New periods often take time to find a pattern.'}
+        {prediction.confidence === 'pattern-based' ? 'Based on your recent pattern—not a promise.' : 'Early estimate. A new Glitter often takes time to find a pattern.'}
       </Text>
     </View>
   );

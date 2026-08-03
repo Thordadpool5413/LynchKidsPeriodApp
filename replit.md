@@ -34,7 +34,7 @@ npm run api:start    # Production API (also serves dist/)
 | `FIELD_ENCRYPTION_KEY` | Encrypted sync payloads (32 bytes, base64) |
 | `PUBLIC_APP_URL` | Correct API redirect URLs |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / price IDs | Subscriptions |
-| `OPENAI_API_KEY` | Generative Ask Glitter (also requires `OPENAI_ZDR_APPROVED=true` and `ASK_BLOOM_GENERATIVE_ENABLED=true`) |
+| `OPENAI_API_KEY` | Generative Ask Ava (also requires `OPENAI_ZDR_APPROVED=true` and `ASK_BLOOM_GENERATIVE_ENABLED=true`) |
 
 See `.env.example` for the full list.
 

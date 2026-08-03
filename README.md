@@ -1,6 +1,6 @@
-# Glitter
+# AvaCado
 
-Glitter is a privacy-first period companion for pre-teens. This repository contains a universal Expo application for iPhone, iPad, and web plus a Replit-ready TypeScript API and PostgreSQL schema.
+AvaCado is a privacy-first Glitter (period) companion for pre-teens. This repository contains a universal Expo application for iPhone, iPad, and web plus a Replit-ready TypeScript API and PostgreSQL schema.
 
 ## What is implemented
 
@@ -12,8 +12,8 @@ Glitter is a privacy-first period companion for pre-teens. This repository conta
 - Education library, completion progress, and safety guidance
 - Forecast-relative local reminders plus generic parent push-job infrastructure
 - Non-punitive sticker achievements and Plus collections
-- Glitter Plus paywall; developer-only preview entitlements are stripped from production builds
-- Ask Glitter curated search with fixed urgent-risk escalation
+- AvaCado Plus paywall; developer-only preview entitlements are stripped from production builds
+- Ask Ava curated search with fixed urgent-risk escalation
 - Garden Builder, Comfort Match, Learning Quest, guided breathing, and school-confidence tools
 - Parent email magic links, verified-consent proof gate, one-time child-device codes, revocable sessions, and a one-child support dashboard
 - Plus Care Requests with structured supply/comfort/school choices, optional encrypted 120-character notes, fixed parent replies, 24-hour expiry, offline retry, and a free urgent check-on-me action
@@ -66,7 +66,7 @@ Required for a production backend:
 - Stripe secret, signed-webhook secret, and monthly/annual Price IDs
 - Apple root CA certificates (comma-separated base64), App ID, bundle ID, and monthly/annual product IDs
 
-Stripe requires its secret key, signed-webhook secret, and monthly/annual Price IDs. Generative Ask Glitter additionally requires an OpenAI API key, approved Zero Data Retention, and both AI flags set to `true`.
+Stripe requires its secret key, signed-webhook secret, and monthly/annual Price IDs. Generative Ask Ava additionally requires an OpenAI API key, approved Zero Data Retention, and both AI flags set to `true`.
 
 ## Database
 
@@ -83,7 +83,7 @@ Local development intentionally runs without PostgreSQL. `/healthz` reports `dat
 
 ## Subscriptions
 
-The UI defines Glitter Plus at $4.99 monthly or $39.99 annually with a seven-day trial. Web checkout is credential-gated through Stripe. A local preview exists only in developer builds; production removes or ignores preview entitlements. Apple V2 notifications and signed transactions are verified with Apple’s official Node server library before entitlement changes.
+The UI defines AvaCado Plus at $4.99 monthly or $39.99 annually with a seven-day trial. Web checkout is credential-gated through Stripe. A local preview exists only in developer builds; production removes or ignores preview entitlements. Apple V2 notifications and signed transactions are verified with Apple’s official Node server library before entitlement changes.
 
 Before selling on iOS:
 
@@ -93,9 +93,9 @@ Before selling on iOS:
 4. Connect the parental-gated native purchase sheet, Restore Purchases, and Manage Subscription to the verified entitlement API.
 5. Test purchase, restore, trial, renewal, grace, billing retry, refund, and revocation in StoreKit sandbox/TestFlight.
 
-## Ask Glitter safety
+## Ask Ava safety
 
-Ask Glitter currently searches only the bundled education catalog. Urgent or medication/diagnosis language bypasses search and returns fixed trusted-adult or emergency guidance. Prompts are not persisted.
+Ask Ava currently searches only the bundled education catalog. Urgent or medication/diagnosis language bypasses search and returns fixed trusted-adult or emergency guidance. Prompts are not persisted.
 
 Generative mode remains off unless:
 
@@ -118,4 +118,4 @@ This is a functional product implementation, not a claim of legal or clinical ap
 - Remove the developer-only cloud-sharing switch after the verified provider flow is connected end to end.
 - Audit native dependency privacy manifests and complete App Store privacy/age-rating disclosures.
 
-Glitter provides general education. It does not diagnose, prescribe, provide telehealth, or replace emergency or professional care.
+AvaCado provides general education. It does not diagnose, prescribe, provide telehealth, or replace emergency or professional care.

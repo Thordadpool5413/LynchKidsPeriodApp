@@ -29,7 +29,7 @@ export default function MoreScreen() {
   return (
     <Page>
       <Link href="/plus" asChild>
-        <Pressable><Card tone="lavender"><PremiumBadge /><Heading size={23}>{premium ? 'Your Plus garden is growing' : 'Meet Glitter Plus'}</Heading><Body>{premium ? 'Verified Plus access is active.' : 'More guidance, activities, insights, themes, and grown-up support.'}</Body><Text style={{ color: colors.lavender, fontFamily: fonts.bodyBold }}>{premium ? 'View membership →' : 'See what is included →'}</Text></Card></Pressable>
+        <Pressable><Card tone="lavender"><PremiumBadge /><Heading size={23}>{premium ? 'Your Plus garden is growing' : 'Meet AvaCado Plus'}</Heading><Body>{premium ? 'Verified Plus access is active.' : 'More guidance, activities, insights, themes, and grown-up support.'}</Body><Text style={{ color: colors.lavender, fontFamily: fonts.bodyBold }}>{premium ? 'View membership →' : 'See what is included →'}</Text></Card></Pressable>
       </Link>
 
       <Link href="/parent" asChild>
@@ -50,12 +50,12 @@ export default function MoreScreen() {
 
       <Card>
         <Heading size={21}>Privacy and comfort</Heading>
-        <SettingRow title="Little-kit reminder" body="Uses discreet words and never mentions a period on the lock screen." control={<Switch value={data.reminder.enabled} onValueChange={async (enabled) => {
+        <SettingRow title="Little-kit reminder" body="Uses a private garden phrase and never mentions Glitter or periods on the lock screen." control={<Switch value={data.reminder.enabled} onValueChange={async (enabled) => {
           const next = { ...data.reminder, enabled };
           const result = await updateForecastReminder(next, prediction.nextStart);
-          if (result === 'denied') Alert.alert('Notifications are off', 'You can allow Glitter reminders in device Settings.');
+          if (result === 'denied') Alert.alert('Notifications are off', 'You can allow AvaCado reminders in device Settings.');
           if (result === 'unsupported' && enabled) Alert.alert('Use your device app', 'Scheduled reminders are available in the iPhone and iPad app.');
-          if (result === 'not-enough-data' && enabled) Alert.alert('Track a little more first', 'Glitter needs an upcoming estimate before it can place a reminder on the right day.');
+          if (result === 'not-enough-data' && enabled) Alert.alert('Track a little more first', 'AvaCado needs an upcoming Glitter estimate before it can place a reminder on the right day.');
           setReminder(result === 'denied' || result === 'unsupported' || result === 'not-enough-data' ? { ...next, enabled: false } : next);
         }} trackColor={{ true: colors.coral, false: colors.line }} />} />
         <Divider />
@@ -66,15 +66,15 @@ export default function MoreScreen() {
 
       <Card>
         <Heading size={21}>Your data</Heading>
-        <Body muted>Export and deletion stay free. Export creates a readable JSON copy; it does not send anything to Glitter.</Body>
-        <SecondaryButton label="Export my data" onPress={() => void Share.share({ title: 'My Glitter data', message: exportData() })} />
-        <SecondaryButton label="Delete everything on this device" destructive onPress={() => Alert.alert('Delete all Glitter data?', 'This cannot be undone. Cloud deletion is handled separately from the grown-up account.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete all', style: 'destructive', onPress: resetAllData }])} />
+        <Body muted>Export and deletion stay free. Export creates a readable JSON copy; it does not send anything to AvaCado.</Body>
+        <SecondaryButton label="Export my data" onPress={() => void Share.share({ title: 'My AvaCado data', message: exportData() })} />
+        <SecondaryButton label="Delete everything on this device" destructive onPress={() => Alert.alert('Delete all AvaCado data?', 'This cannot be undone. Cloud deletion is handled separately from the grown-up account.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete all', style: 'destructive', onPress: resetAllData }])} />
       </Card>
 
       <Link href="/privacy" asChild>
         <Pressable><Card><Heading size={19}>Plain-language privacy</Heading><Body muted>See what stays private, what can be shared, and how to ask for help.</Body></Card></Pressable>
       </Link>
-      <Body muted>Glitter gives general education, not a diagnosis or emergency service.</Body>
+      <Body muted>AvaCado gives general education, not a diagnosis or emergency service.</Body>
     </Page>
   );
 }

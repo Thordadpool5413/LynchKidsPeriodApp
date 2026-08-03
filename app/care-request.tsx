@@ -70,7 +70,7 @@ export default function CareRequestScreen() {
       setEditingOpen(false);
     } catch (error) {
       const text = error instanceof Error ? error.message : 'The note could not be sent.';
-      if (/offline|network|fetch/i.test(text)) { localStorage.setItem(PENDING_KEY, JSON.stringify(payload)); setMessage('Saved on this device. Glitter will try again when you return here online.'); }
+      if (/offline|network|fetch/i.test(text)) { localStorage.setItem(PENDING_KEY, JSON.stringify(payload)); setMessage('Saved on this device. AvaCado will try again when you return here online.'); }
       else setMessage(text);
     } finally { setBusy(false); }
   };
@@ -87,7 +87,7 @@ export default function CareRequestScreen() {
   };
 
   if (!session) return <Page>
-    <Card tone="lavender"><PremiumBadge /><GardenGlyph name="care" size={42} /><Heading size={25}>Connect to your grown-up</Heading><Body>Ask your grown-up for the six-digit code from their private Glitter space. Codes work once and expire after ten minutes.</Body></Card>
+    <Card tone="lavender"><PremiumBadge /><GardenGlyph name="care" size={42} /><Heading size={25}>Connect to your grown-up</Heading><Body>Ask your grown-up for the six-digit code from their private AvaCado space. Codes work once and expire after ten minutes.</Body></Card>
     <Card><TextInput accessibilityLabel="Six-digit link code" keyboardType="number-pad" maxLength={6} value={linkCode} onChangeText={(value) => setLinkCode(value.replace(/\D/g, ''))} placeholder="000000" placeholderTextColor={colors.inkMuted} style={{ minHeight: 54, borderWidth: 2, borderColor: colors.lavender, borderRadius: radii.small, paddingHorizontal: 16, color: colors.ink, fontFamily: fonts.displayBold, fontSize: 24, letterSpacing: 8, textAlign: 'center' }} /><PrimaryButton label={busy ? 'Connecting…' : 'Connect privately'} disabled={busy || linkCode.length !== 6} onPress={connect} />{message ? <Body>{message}</Body> : null}</Card>
     <Card tone="coral"><Heading size={20}>Need help right now?</Heading><Body>Urgent help is always free. Tell a trusted grown-up now if you feel faint, have severe pain, feel unsafe, or are bleeding through a pad every hour.</Body><PrimaryButton tone="coral" label="Tell my grown-up" onPress={() => Alert.alert('Please tell a grown-up now', 'Show them this screen or say: “I need help with something happening to my body.” If you are in immediate danger in the U.S., call 911.')} /></Card>
   </Page>;
@@ -98,6 +98,6 @@ export default function CareRequestScreen() {
     {(!openRequest || editingOpen) ? groups.map((group) => <Card key={group.title}><Heading size={20}>{group.title}</Heading><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 9 }}>{group.items.map((item) => <ChoiceChip key={item.code} label={item.label} selected={items.includes(item.code)} onPress={() => setItems((current) => current.includes(item.code) ? current.filter((code) => code !== item.code) : [...current, item.code])} />)}</View></Card>) : null}
     {(!openRequest || editingOpen) ? <Card><Heading size={20}>Anything else? (optional)</Heading><TextInput accessibilityLabel="Short note to my grown-up" multiline maxLength={120} value={note} onChangeText={setNote} placeholder="One short private note…" placeholderTextColor={colors.inkMuted} style={{ minHeight: 96, textAlignVertical: 'top', borderWidth: 1.5, borderColor: colors.line, borderRadius: radii.small, padding: 14, color: colors.ink, fontFamily: fonts.body, fontSize: 16 }} /><Text selectable style={{ color: colors.inkMuted, fontFamily: fonts.utility, textAlign: 'right', fontVariant: ['tabular-nums'] }}>{note.length}/120</Text><PrimaryButton label={busy ? 'Saving…' : editingOpen ? 'Save note changes' : 'Send garden note'} disabled={busy || !items.length} onPress={send} /></Card> : null}
     {message ? <Body>{message}</Body> : null}
-    <Card tone="coral"><Heading size={20}>Urgent help stays free</Heading><Body>For fainting, severe pain, feeling unsafe, or very heavy bleeding, tell a trusted grown-up now. Glitter sends only when you tap this button; it never alerts anyone secretly.</Body><PrimaryButton tone="coral" label={busy ? 'Sending…' : 'Tell my grown-up now'} disabled={busy} onPress={() => Alert.alert('Send a private check-on-me signal?', 'The lock-screen message stays generic. Please also speak to a nearby trusted grown-up now.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Send', onPress: () => void tellGrownUpNow() }])} /></Card>
+    <Card tone="coral"><Heading size={20}>Urgent help stays free</Heading><Body>For fainting, severe pain, feeling unsafe, or very heavy bleeding, tell a trusted grown-up now. AvaCado sends only when you tap this button; it never alerts anyone secretly.</Body><PrimaryButton tone="coral" label={busy ? 'Sending…' : 'Tell my grown-up now'} disabled={busy} onPress={() => Alert.alert('Send a private check-on-me signal?', 'The lock-screen message stays generic. Please also speak to a nearby trusted grown-up now.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Send', onPress: () => void tellGrownUpNow() }])} /></Card>
   </Page>;
 }

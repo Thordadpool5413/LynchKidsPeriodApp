@@ -28,7 +28,7 @@ export default function AskBloomScreen() {
       <Card tone="lavender">
         <PremiumBadge />
         <Heading size={24}>A safe place to start a question</Heading>
-        <Body>Ask Glitter uses reviewed article search in this build. It is not a person, doctor, or emergency service, and your exact question is not saved.</Body>
+        <Body>Ask Ava uses reviewed article search in this build. It is not a person, doctor, or emergency service, and your exact question is not saved.</Body>
       </Card>
 
       <Card>
@@ -37,7 +37,7 @@ export default function AskBloomScreen() {
           {ASK_BLOOM_TILES.map((tile) => <ChoiceChip key={tile} label={tile} selected={question === tile} onPress={() => setQuestion(tile)} />)}
         </View>
         <TextInput
-          accessibilityLabel="Question for Ask Glitter"
+          accessibilityLabel="Question for Ask Ava"
           editable={premium}
           value={question}
           onChangeText={setQuestion}
@@ -47,7 +47,7 @@ export default function AskBloomScreen() {
           multiline
           style={{ minHeight: 100, textAlignVertical: 'top', borderWidth: 1.5, borderColor: colors.line, borderRadius: radii.small, padding: 14, color: colors.ink, fontFamily: fonts.body, fontSize: 16, backgroundColor: premium ? '#FFFFFF' : colors.lavenderSoft }}
         />
-        <PrimaryButton label={premium ? 'Find a safe answer' : 'Glitter Plus required'} disabled={!premium || !question.trim()} onPress={ask} />
+        <PrimaryButton label={premium ? 'Find a safe answer' : 'AvaCado Plus required'} disabled={!premium || !question.trim()} onPress={ask} />
       </Card>
 
       {submitted ? (
@@ -75,7 +75,7 @@ export default function AskBloomScreen() {
 
       <Card tone="butter">
         <Heading size={18}>What changes before generative AI turns on?</Heading>
-        <Body muted>Zero Data Retention approval, clinician and legal review, safety evaluations, and production feature flags are mandatory. Until then, Ask Glitter searches only the local reviewed library.</Body>
+        <Body muted>Zero Data Retention approval, clinician and legal review, safety evaluations, and production feature flags are mandatory. Until then, Ask Ava searches only the local reviewed library.</Body>
       </Card>
     </Page>
   );

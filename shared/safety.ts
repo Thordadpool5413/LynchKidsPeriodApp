@@ -26,5 +26,5 @@ export function classifySafety(text: string): SafetyLevel {
 
 export const SAFETY_RESPONSES: Record<Exclude<SafetyLevel, 'standard'>, string> = {
   urgent: 'This sounds important. Please tell a trusted grown-up right now. If you feel unsafe or might hurt yourself, call or text 988 in the U.S. If there is immediate danger, call 911.',
-  'trusted-adult': 'A trusted grown-up or health professional should help with this question. Glitter can share general information, but it cannot diagnose or tell you how much medicine to take.',
+  'trusted-adult': 'A trusted grown-up or health professional should help with this question. AvaCado can share general information, but it cannot diagnose or tell you how much medicine to take.',
 };
