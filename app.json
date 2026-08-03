@@ -57,6 +57,18 @@
         "projectId": "89501886-8bbd-4516-9eaa-cb3efe891ffc"
       }
     },
-    "owner": "thordadpool"
+    "owner": "thordadpool",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/89501886-8bbd-4516-9eaa-cb3efe891ffc"
+    },
+    "android": {
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
+    }
   }
 }
