@@ -1,0 +1,19 @@
+package-lock.json
+  s_39b17da45b28ef::t_5bec924b9bcf7a 30,2822-2832,6523-6528,6583-6588,6626-6637,7008-7013,7030-7074,7876-7892,9494-9502,9912-9936
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "c3e5bc898dda03a14f3f92a3a44218876a445b25",
+  "prompts": {},
+  "sessions": {
+    "s_39b17da45b28ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb647-6374-7a83-a050-417b87bcd94a",
+        "model": "unknown"
+      },
+      "human_author": "Thordadpool5413 <nick.lynch.coaching@outlook.com>"
+    }
+  }
+}
