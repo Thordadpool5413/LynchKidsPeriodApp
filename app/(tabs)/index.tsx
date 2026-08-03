@@ -12,6 +12,7 @@ import { colors, fonts, radii } from '@/theme';
 import { GardenGlyph } from '@/components/garden-glyph';
 import { readCloudSession } from '@/services/cloud-session';
 import { apiClient } from '@/services/api-client';
+import { BrandMark } from '@/components/brand-mark';
 
 const moods: { value: Mood; label: string }[] = [
   { value: 'good', label: 'Good' },
@@ -56,6 +57,7 @@ export default function HomeScreen() {
     <View style={{ flex: 1, backgroundColor: colors.canvas }}>
       <View style={{ height: 12, backgroundColor: colors.lavenderSoft }} />
       <Page>
+        <BrandMark compact />
         {data.profile.cloudSyncEnabled ? <SharedBanner /> : null}
         {parentReminderDisclosure ? (
           <Card tone="aqua" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12 }}>
@@ -64,7 +66,7 @@ export default function HomeScreen() {
           </Card>
         ) : null}
         <View style={{ gap: 5 }}>
-          <Eyebrow>Today in your garden</Eyebrow>
+          <Eyebrow>Today with Ava</Eyebrow>
           <Heading>{greeting}</Heading>
         </View>
 
@@ -84,7 +86,7 @@ export default function HomeScreen() {
         <Card tone={todayPeriod ? 'coral' : 'aqua'}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <View style={{ flex: 1, gap: 5 }}>
-              <Heading size={20}>{todayPeriod ? 'You marked today as a period day' : 'Are you on your period today?'}</Heading>
+              <Heading size={20}>{todayPeriod ? 'You marked today as a Glitter day' : 'Is your Glitter here today?'}</Heading>
               <Body muted>You can always change this later in Calendar.</Body>
             </View>
             <GardenGlyph name="flower" color={todayPeriod ? colors.coral : colors.success} size={38} />
@@ -108,7 +110,7 @@ export default function HomeScreen() {
             <Pressable style={({ pressed }) => ({ flexGrow: 1, flexBasis: 250, minHeight: 126, backgroundColor: colors.butterSoft, borderRadius: radii.medium, padding: 18, gap: 8, opacity: pressed ? 0.8 : 1 })}>
               <PremiumBadge />
               <GardenGlyph name="learn" size={26} />
-              <Text style={{ color: colors.ink, fontFamily: fonts.display, fontSize: 20 }}>Ask Glitter</Text>
+              <Text style={{ color: colors.ink, fontFamily: fonts.display, fontSize: 20 }}>Ask Ava</Text>
               <Body muted>{premium ? 'Ask a private, age-appropriate question.' : 'Preview safe answers and Plus support.'}</Body>
             </Pressable>
           </Link>

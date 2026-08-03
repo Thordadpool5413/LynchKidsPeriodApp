@@ -7,7 +7,7 @@ import { colors, fonts, radii } from '@/theme';
 
 const catalog: Record<string, { title: string; body: string; sticker: string }> = {
   'first-checkin': { title: 'Feeling finder', body: 'Save your first mood check-in.', sticker: '🌼' },
-  'first-bloom': { title: 'First bloom', body: 'Track a period start.', sticker: '🌺' },
+  'first-bloom': { title: 'First Glitter', body: 'Track when your Glitter starts.', sticker: '🌺' },
   'three-lessons': { title: 'Curious mind', body: 'Finish three learning cards.', sticker: '🌈' },
   'school-ready': { title: 'School ready', body: 'Finish your school kit checklist.', sticker: '🎒' },
 };

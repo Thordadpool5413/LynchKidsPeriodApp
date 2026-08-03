@@ -92,7 +92,7 @@ app.post('/v1/webhooks/stripe', express.raw({ type: 'application/json' }), async
   if (parentAccountId) {
     await db.insert(parentAccounts).values({
       id: parentAccountId,
-      email: `webhook+${parentAccountId}@glitter.local`,
+      email: `webhook+${parentAccountId}@avacado.local`,
     }).onConflictDoNothing();
   }
 
@@ -154,7 +154,7 @@ app.get('/healthz', async (_request, response) => {
       : config.NODE_ENV !== 'production' ? 'console-only' : 'none';
   response.status(config.NODE_ENV === 'production' && !database ? 503 : 200).json({
     ok: config.NODE_ENV !== 'production' || database,
-    service: 'glitter-api',
+    service: 'avacado-api',
     database,
     emailDelivery,
     askBloomMode: config.OPENAI_ZDR_APPROVED === 'true' && config.ASK_BLOOM_GENERATIVE_ENABLED === 'true' ? 'generative' : 'curated',
@@ -181,12 +181,12 @@ app.post('/v1/auth/request-link', rateLimit(5, 15 * 60_000), async (request, res
       await transport.sendMail({
         from: config.EMAIL_FROM,
         to: email,
-        subject: 'Sign in to Glitter',
-        text: `Tap the link below to sign in to your Glitter parent account.\n\nThis link expires in 15 minutes and can only be used once.\n\n${link}\n\nIf you did not request this, you can safely ignore this email.`,
-        html: `<p>Tap the link below to sign in to your Glitter parent account.</p><p>This link expires in 15 minutes and can only be used once.</p><p><a href="${link}">Sign in to Glitter</a></p><p>If you did not request this, you can safely ignore this email.</p>`,
+        subject: 'Sign in to AvaCado',
+        text: `Tap the link below to sign in to your AvaCado parent account.\n\nThis link expires in 15 minutes and can only be used once.\n\n${link}\n\nIf you did not request this, you can safely ignore this email.`,
+        html: `<p>Tap the link below to sign in to your AvaCado parent account.</p><p>This link expires in 15 minutes and can only be used once.</p><p><a href="${link}">Sign in to AvaCado</a></p><p>If you did not request this, you can safely ignore this email.</p>`,
       });
     } catch (err) {
-      console.error('[glitter-api] Failed to send magic-link email:', err instanceof Error ? err.message : err);
+      console.error('[avacado-api] Failed to send magic-link email:', err instanceof Error ? err.message : err);
       return response.status(503).json({ error: 'Could not send sign-in email. Please try again.' });
     }
   } else if (process.env.REPLIT_CONNECTORS_HOSTNAME) {
@@ -201,24 +201,24 @@ app.post('/v1/auth/request-link', rateLimit(5, 15 * 60_000), async (request, res
         body: {
           from: config.EMAIL_FROM,
           to: email,
-          subject: 'Sign in to Glitter',
-          text: `Tap the link below to sign in to your Glitter parent account.\n\nThis link expires in 15 minutes and can only be used once.\n\n${link}\n\nIf you did not request this, you can safely ignore this email.`,
-          html: `<p>Tap the link below to sign in to your Glitter parent account.</p><p>This link expires in 15 minutes and can only be used once.</p><p><a href="${link}">Sign in to Glitter</a></p><p>If you did not request this, you can safely ignore this email.</p>`,
+          subject: 'Sign in to AvaCado',
+          text: `Tap the link below to sign in to your AvaCado parent account.\n\nThis link expires in 15 minutes and can only be used once.\n\n${link}\n\nIf you did not request this, you can safely ignore this email.`,
+          html: `<p>Tap the link below to sign in to your AvaCado parent account.</p><p>This link expires in 15 minutes and can only be used once.</p><p><a href="${link}">Sign in to AvaCado</a></p><p>If you did not request this, you can safely ignore this email.</p>`,
         },
       });
       if (!res.ok) {
         const resBody = await res.text().catch(() => '');
-        console.error('[glitter-api] Resend connector error:', res.status, resBody);
+        console.error('[avacado-api] Resend connector error:', res.status, resBody);
         return response.status(503).json({ error: 'Could not send sign-in email. Please try again.' });
       }
     } catch (err) {
-      console.error('[glitter-api] Failed to send magic-link email via Resend:', err instanceof Error ? err.message : err);
+      console.error('[avacado-api] Failed to send magic-link email via Resend:', err instanceof Error ? err.message : err);
       return response.status(503).json({ error: 'Could not send sign-in email. Please try again.' });
     }
   } else if (config.NODE_ENV !== 'production') {
     // No email transport configured — log the link only in dev/test so developers can follow it manually.
     // This branch is unreachable in production because config.ts requires email delivery there.
-    console.info(`[glitter-api] Magic link for ${email}: ${link}`);
+    console.info(`[avacado-api] Magic link for ${email}: ${link}`);
   } else {
     // Production with no email transport: refuse the request rather than silently failing to deliver.
     return response.status(503).json({ error: 'Email delivery is not configured. Contact support.' });
@@ -510,7 +510,7 @@ app.patch('/v1/parent/reminder-preferences', requireSession('parent'), async (re
   const parentAccountId = request.session!.subject;
   const childProfileId = await getParentChild(parentAccountId);
   if (!childProfileId || !(await hasActiveConsent(parentAccountId, childProfileId))) return response.status(403).json({ error: 'Verified parent consent is required.' });
-  if (!(await requirePlus(parentAccountId))) return response.status(402).json({ error: 'Glitter Plus is required for parent forecast alerts.' });
+  if (!(await requirePlus(parentAccountId))) return response.status(402).json({ error: 'AvaCado Plus is required for parent forecast alerts.' });
   const [record] = await db.insert(parentReminderPreferences).values({ parentAccountId, childProfileId, ...parsed.data, consentedAt: parsed.data.enabled ? new Date() : null })
     .onConflictDoUpdate({ target: [parentReminderPreferences.parentAccountId, parentReminderPreferences.childProfileId], set: { ...parsed.data, consentedAt: parsed.data.enabled ? new Date() : null, updatedAt: new Date() } }).returning();
   await recordAudit({ parentAccountId, childProfileId, actorType: 'parent', action: parsed.data.enabled ? 'parent-reminders-enabled' : 'parent-reminders-disabled', resourceType: 'reminder-preference', resourceId: record.id });
@@ -524,7 +524,7 @@ app.post('/v1/care-requests', requireSession('child'), rateLimit(10, 60_000), as
   const childProfileId = request.session!.childId;
   const parentAccountId = await parentIdForSession(request);
   if (!parentAccountId || !(await hasActiveConsent(parentAccountId, childProfileId))) return response.status(403).json({ error: 'A linked grown-up and verified consent are required.' });
-  if (!parsed.data.urgentSafety && !(await requirePlus(parentAccountId))) return response.status(402).json({ error: 'Glitter Plus is required for regular Care Requests.' });
+  if (!parsed.data.urgentSafety && !(await requirePlus(parentAccountId))) return response.status(402).json({ error: 'AvaCado Plus is required for regular Care Requests.' });
   if (parsed.data.urgentSafety && (parsed.data.items.length !== 1 || parsed.data.items[0] !== 'check-on-me' || parsed.data.note)) return response.status(400).json({ error: 'Urgent safety sharing sends only a private check-on-me signal.' });
   const existing = await db.select({ id: careRequests.id }).from(careRequests).where(and(eq(careRequests.childProfileId, childProfileId), eq(careRequests.status, 'open'), eq(careRequests.urgentSafety, parsed.data.urgentSafety), gt(careRequests.expiresAt, new Date()))).limit(1);
   if (existing.length) return response.status(409).json({ error: 'You already have a garden note waiting. Edit or cancel it first.', requestId: existing[0].id });
@@ -626,7 +626,7 @@ app.post('/v1/checkout', requireSession('parent'), rateLimit(10, 60_000), async 
   if (db) {
     await db.insert(parentAccounts).values({
       id: parentAccountId,
-      email: `checkout+${parentAccountId}@glitter.local`,
+      email: `checkout+${parentAccountId}@avacado.local`,
     }).onConflictDoNothing();
   }
   const session = await stripe.checkout.sessions.create({
@@ -694,8 +694,8 @@ app.post('/v1/ask-bloom', requireSession('child'), rateLimit(12, 60_000), async 
     model: config.OPENAI_MODEL,
     store: false,
     input: [
-      { role: 'developer', content: 'Answer for a 10 to 12 year old using only the supplied Glitter text. Use plain, calm language. Do not diagnose, give medication doses, request personal details, or claim certainty. If the text does not answer the question, say to ask a trusted grown-up.' },
-      { role: 'user', content: `Glitter text:\n${corpus || 'No matching reviewed text.'}\n\nQuestion:\n${question}` },
+      { role: 'developer', content: 'Answer for a 10 to 12 year old using only the supplied AvaCado text. Use plain, calm language. Do not diagnose, give medication doses, request personal details, or claim certainty. If the text does not answer the question, say to ask a trusted grown-up.' },
+      { role: 'user', content: `AvaCado text:\n${corpus || 'No matching reviewed text.'}\n\nQuestion:\n${question}` },
     ],
   });
   response.json({ mode: 'generative-reviewed-corpus', safety, answer: result.output_text, retained: false });
@@ -762,7 +762,7 @@ app.use((request, response) => {
 });
 app.use((error: unknown, _request: Request, response: Response, _next: NextFunction) => {
   const message = error instanceof Error ? error.message : 'Unexpected server error';
-  if (config.NODE_ENV !== 'test') console.error('[glitter-api]', message);
+  if (config.NODE_ENV !== 'test') console.error('[avacado-api]', message);
   response.status(500).json({ error: 'The request could not be completed.' });
 });
 

@@ -55,7 +55,7 @@ export default function CalendarScreen() {
             const selected = date === selectedDate;
             const isPeriod = periodDays.has(day);
             return (
-              <Pressable key={date} accessibilityRole="button" accessibilityLabel={`${monthTitle(year, month)} ${day}${isPeriod ? ', period day' : ''}`} onPress={() => selectDay(day)} style={{ width: '14.285%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable key={date} accessibilityRole="button" accessibilityLabel={`${monthTitle(year, month)} ${day}${isPeriod ? ', Glitter day' : ''}`} onPress={() => selectDay(day)} style={{ width: '14.285%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <View style={{ width: 38, height: 38, borderRadius: radii.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.lavender : isPeriod ? colors.coralSoft : 'transparent', borderWidth: isPeriod && !selected ? 2 : 0, borderColor: colors.coral }}>
                   <Text style={{ color: selected ? '#FFFFFF' : colors.ink, fontFamily: fonts.bodyBold, fontSize: 14, fontVariant: ['tabular-nums'] }}>{day}</Text>
                 </View>
@@ -66,7 +66,7 @@ export default function CalendarScreen() {
       </Card>
 
       <Body muted>Select any date to edit it in a private sheet.</Body>
-      {data.cycleEvents.filter((item) => !item.deletedAt).length === 0 ? <EmptyState title="Your calendar starts here" body="Mark a period start when it happens. Glitter will never guess before you do." /> : null}
+      {data.cycleEvents.filter((item) => !item.deletedAt).length === 0 ? <EmptyState title="Your Glitter calendar starts here" body="Mark a Glitter start when it happens. AvaCado will never guess before you do." /> : null}
     </Page>
   );
 }

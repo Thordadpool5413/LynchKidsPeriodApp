@@ -6,8 +6,8 @@ import { config } from '../config';
 import { hasActiveConsent, requirePlus } from './access';
 
 const TEMPLATES: Record<string, { title: string; body: string }> = {
-  'care-request': { title: 'Glitter', body: 'A garden note is waiting.' },
-  'forecast-soon': { title: 'Glitter', body: 'A garden moment may be getting closer.' },
+  'care-request': { title: 'AvaCado', body: 'A garden note is waiting.' },
+  'forecast-soon': { title: 'AvaCado', body: 'A garden moment may be getting closer.' },
 };
 
 export async function sendDueNotifications(now = new Date()): Promise<{ sent: number; failed: number }> {

@@ -22,11 +22,11 @@ const draftFixture: ContentItem = {
   reviewedAt: '2026-08-01', reviewerStatus: 'draft', publishedAt: '2026-08-01',
 };
 
-describe('Glitter API', () => {
+describe('AvaCado API', () => {
   it('reports a healthy development service without claiming a database', async () => {
     const response = await request(app).get('/healthz');
     expect(response.status).toBe(200);
-    expect(response.body.service).toBe('glitter-api');
+    expect(response.body.service).toBe('avacado-api');
     expect(response.body.askBloomMode).toBe('curated');
   });
 
@@ -70,7 +70,7 @@ describe('Glitter API', () => {
     expect(filterPublished(PENDING_CONTENT)).toHaveLength(0);
   });
 
-  it('does not surface draft content in Ask Glitter curated answers', async () => {
+  it('does not surface draft content in Ask Ava curated answers', async () => {
     const session = await request(app).post('/v1/dev/session').send({ role: 'child' });
     const response = await request(app)
       .post('/v1/ask-bloom')
@@ -218,7 +218,7 @@ describe('Glitter API', () => {
     expect(entitlementResponse.body.entitlement.status).toBe('free');
   });
 
-  it('requires authentication for Ask Glitter', async () => {
+  it('requires authentication for Ask Ava', async () => {
     const response = await request(app).post('/v1/ask-bloom').send({ question: 'Are cramps normal?' });
     expect(response.status).toBe(401);
   });

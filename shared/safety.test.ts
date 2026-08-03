@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { classifySafety } from './safety';
 
-describe('Ask Glitter safety routing', () => {
+describe('Ask Ava safety routing', () => {
   it('routes urgent language to fixed guidance', () => {
     expect(classifySafety('I feel like I might hurt myself')).toBe('urgent');
     expect(classifySafety('I fainted today')).toBe('urgent');

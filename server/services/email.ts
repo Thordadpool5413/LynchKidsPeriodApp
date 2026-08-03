@@ -7,8 +7,8 @@ export async function sendParentMagicLink(email: string, token: string): Promise
   const message = {
     from,
     to: [email],
-    subject: 'Your Glitter parent sign-in link',
-    text: `Use this private link to sign in to the Glitter parent area. It expires in 15 minutes.\n\n${url.toString()}\n\nNo child or health information is included in this email.`,
+    subject: 'Your AvaCado parent sign-in link',
+    text: `Use this private link to sign in to the AvaCado parent area. It expires in 15 minutes.\n\n${url.toString()}\n\nNo child or health information is included in this email.`,
   };
 
   if (config.RESEND_API_KEY) {

@@ -13,7 +13,7 @@ async function startProduction(): Promise<void> {
     try {
       const response = await fetch(`http://127.0.0.1:${config.PORT}/healthz`);
       if (!response.ok) throw new Error(`/healthz returned ${response.status}`);
-      console.log(`Glitter production server ready on port ${config.PORT}`);
+      console.log(`AvaCado production server ready on port ${config.PORT}`);
     } catch (error) {
       console.error('Production startup verification failed', error);
       server.close(() => process.exit(1));
@@ -22,6 +22,6 @@ async function startProduction(): Promise<void> {
 }
 
 startProduction().catch((error) => {
-  console.error('Glitter production startup failed', error);
+  console.error('AvaCado production startup failed', error);
   process.exit(1);
 });

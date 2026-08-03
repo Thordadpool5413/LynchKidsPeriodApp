@@ -55,7 +55,7 @@ export default function LearnScreen() {
                   <PrimaryButton label={completed ? 'Lesson complete ✓' : 'I finished this'} tone="coral" onPress={() => completeLesson(item.id)} />
                 </View>
               ) : null}
-              {locked ? <Text selectable style={{ color: colors.lavender, fontFamily: fonts.bodyBold }}>Available with Glitter Plus</Text> : null}
+              {locked ? <Text selectable style={{ color: colors.lavender, fontFamily: fonts.bodyBold }}>Available with AvaCado Plus</Text> : null}
             </Card>
           </Pressable>
         );

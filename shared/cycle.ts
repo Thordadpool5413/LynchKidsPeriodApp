@@ -36,7 +36,7 @@ export function predictNextPeriod(events: CycleEvent[], today: ISODate): CyclePr
   if (starts.length === 0) {
     return {
       confidence: 'not-enough-data',
-      message: "Track a period start when you're ready. We'll learn together.",
+      message: "Track a Glitter start when you're ready. Ava will learn with you.",
     };
   }
 
@@ -68,7 +68,7 @@ export function predictNextPeriod(events: CycleEvent[], today: ISODate): CyclePr
     daysUntil,
     averageCycleLength,
     confidence,
-    message: `Your next bloom may be ${timing}.`,
+    message: `Your next Glitter may be ${timing}.`,
   };
 }
 

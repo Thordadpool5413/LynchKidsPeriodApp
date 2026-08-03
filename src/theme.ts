@@ -1,20 +1,20 @@
 export const colors = {
-  ink: '#33284F',
-  inkMuted: '#6E6682',
-  canvas: '#FFF9FE',
+  ink: '#402D25',
+  inkMuted: '#6E6258',
+  canvas: '#FBFAF2',
   card: '#FFFFFF',
-  lavender: '#6546A6',
-  lavenderSoft: '#EEE8FF',
-  coral: '#B83D5A',
-  coralSoft: '#FFE7EC',
-  aqua: '#5AB8A7',
-  aquaSoft: '#E2F9F5',
-  butter: '#FFD873',
-  butterSoft: '#FFF5D6',
-  orchid: '#C76DD6',
-  line: '#E8E0F0',
-  success: '#287052',
-  danger: '#B83D5A',
+  lavender: '#466B2D',
+  lavenderSoft: '#E9F1D9',
+  coral: '#A9443F',
+  coralSoft: '#FBE5E0',
+  aqua: '#5D8A3A',
+  aquaSoft: '#E7F3E1',
+  butter: '#E7BE55',
+  butterSoft: '#FFF5CF',
+  orchid: '#B85F68',
+  line: '#DED8C7',
+  success: '#356B3B',
+  danger: '#A13E3A',
 };
 
 export const fonts = {
@@ -33,6 +33,6 @@ export const radii = {
 };
 
 export const shadows = {
-  card: '0 8px 28px rgba(70, 47, 105, 0.10)',
-  floating: '0 14px 36px rgba(84, 58, 125, 0.18)',
+  card: '0 8px 28px rgba(73, 91, 45, 0.11)',
+  floating: '0 14px 36px rgba(64, 45, 37, 0.16)',
 };

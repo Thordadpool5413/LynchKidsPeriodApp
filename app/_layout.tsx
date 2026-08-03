@@ -17,8 +17,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShadowVisible: false, headerBackButtonDisplayMode: 'minimal', contentStyle: { backgroundColor: colors.canvas } }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="plus" options={{ title: 'Glitter Plus', presentation: 'modal' }} />
-        <Stack.Screen name="ask-bloom" options={{ title: 'Ask Glitter' }} />
+        <Stack.Screen name="plus" options={{ title: 'AvaCado Plus', presentation: 'modal' }} />
+        <Stack.Screen name="ask-bloom" options={{ title: 'Ask Ava' }} />
         <Stack.Screen name="care-request" options={{ title: 'Ask my grown-up', presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.85, 1] }} />
         <Stack.Screen name="calendar-day" options={{ title: 'Edit a day', presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.75, 1] }} />
         <Stack.Screen name="activities" options={{ title: 'Garden activities' }} />

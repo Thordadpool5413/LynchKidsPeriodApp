@@ -32,7 +32,7 @@ async function main() {
   }
 
   app.listen(config.PORT, '0.0.0.0', () => {
-    console.log(`Glitter API listening on http://0.0.0.0:${config.PORT}`);
+    console.log(`AvaCado API listening on http://0.0.0.0:${config.PORT}`);
   });
 }
 
