@@ -1,0 +1,19 @@
+eas.json
+  s_39b17da45b28ef::t_a4f4347e8dbb41 26-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "e3d1ee644a40b0da79038c7adce70f08f2419ade",
+  "prompts": {},
+  "sessions": {
+    "s_39b17da45b28ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb647-6374-7a83-a050-417b87bcd94a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Thordadpool5413 <nick.lynch.coaching@outlook.com>"
+    }
+  }
+}
